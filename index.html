@@ -421,6 +421,15 @@
 
         <div class="table-section">
             <div class="table-title">📋 Historique des ventes</div>
+            <div style="margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                <label for="monthFilter" style="font-weight: 600; color: var(--primary); margin: 0;">Filtrer par mois:</label>
+                <select id="monthFilter" style="padding: 10px 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 0.95em; background: rgba(15, 23, 42, 0.5); color: var(--text); cursor: pointer;">
+                    <option value="">Afficher tout</option>
+                </select>
+                <div id="monthlyRevenue" style="font-size: 1.1em; font-weight: 600; color: var(--primary); padding: 10px 16px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; border-left: 4px solid var(--primary);">
+                    Chiffre d'affaires: 0.00€
+                </div>
+            </div>
             <div id="tableContainer">
                 <div class="empty-state">
                     <div class="empty-state-icon">📭</div>
@@ -540,16 +549,60 @@
             }
         }
 
-        // Afficher le tableau
-        async function renderTable() {
+        // Remplir le dropdown des mois
+        async function populateMonthFilter() {
             const sales = await loadData();
+            const monthSet = new Set();
+
+            sales.forEach(sale => {
+                const date = new Date(sale.date + 'T00:00:00');
+                const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                monthSet.add(monthYear);
+            });
+
+            const sortedMonths = Array.from(monthSet).sort().reverse();
+            const select = document.getElementById('monthFilter');
+            
+            sortedMonths.forEach(monthYear => {
+                const [year, month] = monthYear.split('-');
+                const monthName = new Date(year, month - 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+                const option = document.createElement('option');
+                option.value = monthYear;
+                option.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+                select.appendChild(option);
+            });
+        }
+
+        // Afficher le tableau avec filtre optionnel
+        async function renderTable(filterMonth = '') {
+            let sales = await loadData();
             const container = document.getElementById('tableContainer');
+
+            // Filtrer par mois si sélectionné
+            if (filterMonth) {
+                sales = sales.filter(sale => {
+                    const date = new Date(sale.date + 'T00:00:00');
+                    const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                    return monthYear === filterMonth;
+                });
+            }
+
+            // Calculer et afficher le chiffre d'affaires du mois filtré
+            const monthlyTotal = sales.reduce((sum, s) => sum + s.price, 0);
+            const monthlyDisplay = document.getElementById('monthlyRevenue');
+            if (filterMonth) {
+                const [year, month] = filterMonth.split('-');
+                const monthName = new Date(year, month - 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+                monthlyDisplay.textContent = `Chiffre d'affaires ${monthName.charAt(0).toUpperCase() + monthName.slice(1)}: ${monthlyTotal.toFixed(2)}€`;
+            } else {
+                monthlyDisplay.textContent = 'Chiffre d'affaires: 0.00€';
+            }
 
             if (sales.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">📭</div>
-                        <div class="empty-state-text">Aucune vente enregistrée. Commencez par en ajouter une!</div>
+                        <div class="empty-state-text">${filterMonth ? 'Aucune vente ce mois-ci.' : 'Aucune vente enregistrée. Commencez par en ajouter une!'}</div>
                     </div>
                 `;
                 return;
@@ -624,8 +677,14 @@
         // Initialiser la date du jour
         document.getElementById('date').valueAsDate = new Date();
 
+        // Ajouter event listener pour le filtre des mois
+        document.getElementById('monthFilter').addEventListener('change', function(e) {
+            renderTable(e.target.value);
+        });
+
         // Initialiser et charger au démarrage
         initDB().then(() => {
+            populateMonthFilter();
             renderTable();
             updateStats();
         }).catch(err => {
