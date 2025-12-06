@@ -439,19 +439,58 @@
     </div>
 
     <script>
-        // Charger les données depuis localStorage
-        function loadData() {
-            const saved = localStorage.getItem('salesData');
-            return saved ? JSON.parse(saved) : [];
+        let db;
+
+        // Initialiser IndexedDB
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('SuiviVentesDB', 1);
+
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    db = request.result;
+                    resolve(db);
+                };
+
+                request.onupgradeneeded = (event) => {
+                    const database = event.target.result;
+                    if (!database.objectStoreNames.contains('sales')) {
+                        database.createObjectStore('sales', { keyPath: 'id' });
+                    }
+                };
+            });
         }
 
-        // Sauvegarder les données
-        function saveData(data) {
-            localStorage.setItem('salesData', JSON.stringify(data));
+        // Charger les données depuis IndexedDB
+        function loadData() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['sales'], 'readonly');
+                const store = transaction.objectStore('sales');
+                const request = store.getAll();
+
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => resolve(request.result || []);
+            });
+        }
+
+        // Sauvegarder les données dans IndexedDB
+        function saveData(sales) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['sales'], 'readwrite');
+                const store = transaction.objectStore('sales');
+                
+                store.clear();
+                sales.forEach(sale => {
+                    store.add(sale);
+                });
+
+                transaction.onerror = () => reject(transaction.error);
+                transaction.oncomplete = () => resolve();
+            });
         }
 
         // Ajouter une vente
-        document.getElementById('salesForm').addEventListener('submit', function(e) {
+        document.getElementById('salesForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
             const dateInput = document.getElementById('date').value;
@@ -479,39 +518,39 @@
                 return;
             }
 
-            const sales = loadData();
+            const sales = await loadData();
             sales.push(newSale);
-            saveData(sales);
+            await saveData(sales);
 
             console.log('✅ Vente enregistrée:', newSale);
-            console.log('📊 Toutes les ventes:', loadData());
+            console.log('📊 Toutes les ventes:', await loadData());
 
             // Réinitialiser le formulaire
             this.reset();
             document.getElementById('date').valueAsDate = new Date();
             
             // Actualiser l'affichage
-            renderTable();
-            updateStats();
+            await renderTable();
+            await updateStats();
 
             // Message de confirmation
             alert('✅ Vente enregistrée avec succès!');
         });
 
         // Supprimer une vente
-        function deleteSale(id) {
+        async function deleteSale(id) {
             if (confirm('Êtes-vous sûr de vouloir supprimer cette vente?')) {
-                let sales = loadData();
+                let sales = await loadData();
                 sales = sales.filter(s => s.id !== id);
-                saveData(sales);
-                renderTable();
-                updateStats();
+                await saveData(sales);
+                await renderTable();
+                await updateStats();
             }
         }
 
         // Afficher le tableau
-        function renderTable() {
-            const sales = loadData();
+        async function renderTable() {
+            const sales = await loadData();
             const container = document.getElementById('tableContainer');
 
             if (sales.length === 0) {
@@ -557,8 +596,8 @@
         }
 
         // Mettre à jour les statistiques
-        function updateStats() {
-            const sales = loadData();
+        async function updateStats() {
+            const sales = await loadData();
 
             if (sales.length === 0) {
                 document.getElementById('totalRevenue').textContent = '0.00€';
@@ -598,9 +637,14 @@
         // Initialiser la date du jour
         document.getElementById('date').valueAsDate = new Date();
 
-        // Charger au démarrage
-        renderTable();
-        updateStats();
+        // Initialiser et charger au démarrage
+        initDB().then(() => {
+            renderTable();
+            updateStats();
+        }).catch(err => {
+            console.error('❌ Erreur IndexedDB:', err);
+            alert('Erreur de base de données. Actualisez la page.');
+        });
     </script>
 </body>
 </html>
