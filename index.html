@@ -366,7 +366,6 @@
     <div class="container">
         <header>
             <h1>✨ Suivi Ventes</h1>
-            <p class="subtitle">Gestion comptable de votre activité</p>
         </header>
 
         <div class="stats-grid">
@@ -379,11 +378,6 @@
                 <div class="stat-label">📊 Nombre de ventes</div>
                 <div class="stat-value" id="totalCount">0</div>
                 <div class="stat-subtext" id="monthText">Ce mois</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">🎯 Prix moyen</div>
-                <div class="stat-value" id="avgSalePrice">0.00€</div>
-                <div class="stat-subtext">Par article</div>
             </div>
             <div class="stat-card">
                 <div class="stat-label">📈 Plateforme top</div>
@@ -415,8 +409,6 @@
                             <option value="Vinted">Vinted</option>
                             <option value="LeBonCoin">LeBonCoin</option>
                             <option value="eBay">eBay</option>
-                            <option value="Instagram">Instagram</option>
-                            <option value="Autre">Autre</option>
                         </select>
                     </div>
                 </div>
@@ -602,7 +594,6 @@
             if (sales.length === 0) {
                 document.getElementById('totalRevenue').textContent = '0.00€';
                 document.getElementById('totalCount').textContent = '0';
-                document.getElementById('avgSalePrice').textContent = '0.00€';
                 document.getElementById('topPlatform').textContent = '-';
                 document.getElementById('avgPrice').textContent = 'Aucune vente';
                 document.getElementById('monthText').textContent = 'Ce mois';
@@ -617,11 +608,7 @@
             // Nombre de ventes
             document.getElementById('totalCount').textContent = sales.length;
             document.getElementById('monthText').textContent = `${sales.length} articles vendus`;
-
-            // Prix moyen
-            const avgPrice = totalRevenue / sales.length;
-            document.getElementById('avgSalePrice').textContent = avgPrice.toFixed(2) + '€';
-            document.getElementById('avgPrice').textContent = `Moyenne: ${avgPrice.toFixed(2)}€`;
+            document.getElementById('avgPrice').textContent = `Total: ${totalRevenue.toFixed(2)}€`;
 
             // Plateforme la plus utilisée
             const platformCount = {};
