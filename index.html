@@ -231,6 +231,48 @@
             font-weight: 700;
         }
 
+        .filter-section {
+            margin-bottom: 25px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-label {
+            font-weight: 600;
+            color: var(--primary);
+            margin: 0;
+            font-size: 0.95em;
+        }
+
+        .month-filter {
+            padding: 10px 14px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.95em;
+            background: rgba(15, 23, 42, 0.5);
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .month-filter:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        }
+
+        .monthly-revenue {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: var(--primary);
+            padding: 10px 16px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -359,6 +401,15 @@
             th, td {
                 padding: 12px;
             }
+
+            .filter-section {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .monthly-revenue {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -421,12 +472,12 @@
 
         <div class="table-section">
             <div class="table-title">📋 Historique des ventes</div>
-            <div style="margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
-                <label for="monthFilter" style="font-weight: 600; color: var(--primary); margin: 0;">Filtrer par mois:</label>
-                <select id="monthFilter" style="padding: 10px 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 0.95em; background: rgba(15, 23, 42, 0.5); color: var(--text); cursor: pointer;">
+            <div class="filter-section">
+                <label for="monthFilter" class="filter-label">Filtrer par mois:</label>
+                <select id="monthFilter" class="month-filter">
                     <option value="">Afficher tout</option>
                 </select>
-                <div id="monthlyRevenue" style="font-size: 1.1em; font-weight: 600; color: var(--primary); padding: 10px 16px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; border-left: 4px solid var(--primary);">
+                <div id="monthlyRevenue" class="monthly-revenue">
                     Chiffre d'affaires: 0.00€
                 </div>
             </div>
@@ -440,58 +491,32 @@
     </div>
 
     <script>
-        let db;
+        const STORAGE_KEY = 'SuiviVentesData';
 
-        // Initialiser IndexedDB
-        function initDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open('SuiviVentesDB', 1);
-
-                request.onerror = () => reject(request.error);
-                request.onsuccess = () => {
-                    db = request.result;
-                    resolve(db);
-                };
-
-                request.onupgradeneeded = (event) => {
-                    const database = event.target.result;
-                    if (!database.objectStoreNames.contains('sales')) {
-                        database.createObjectStore('sales', { keyPath: 'id' });
-                    }
-                };
-            });
-        }
-
-        // Charger les données depuis IndexedDB
+        // Charger les données depuis localStorage
         function loadData() {
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction(['sales'], 'readonly');
-                const store = transaction.objectStore('sales');
-                const request = store.getAll();
-
-                request.onerror = () => reject(request.error);
-                request.onsuccess = () => resolve(request.result || []);
-            });
+            try {
+                const data = localStorage.getItem(STORAGE_KEY);
+                return data ? JSON.parse(data) : [];
+            } catch (error) {
+                console.error('❌ Erreur lors du chargement:', error);
+                return [];
+            }
         }
 
-        // Sauvegarder les données dans IndexedDB
+        // Sauvegarder les données dans localStorage
         function saveData(sales) {
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction(['sales'], 'readwrite');
-                const store = transaction.objectStore('sales');
-                
-                store.clear();
-                sales.forEach(sale => {
-                    store.add(sale);
-                });
-
-                transaction.onerror = () => reject(transaction.error);
-                transaction.oncomplete = () => resolve();
-            });
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(sales));
+                console.log('✅ Données sauvegardées');
+            } catch (error) {
+                console.error('❌ Erreur lors de la sauvegarde:', error);
+                alert('Erreur de sauvegarde. Vérifiez votre stockage.');
+            }
         }
 
         // Ajouter une vente
-        document.getElementById('salesForm').addEventListener('submit', async function(e) {
+        document.getElementById('salesForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
             const dateInput = document.getElementById('date').value;
@@ -505,53 +530,56 @@
                 return;
             }
 
-            const newSale = {
-                id: Date.now(),
-                date: dateInput,
-                product: productInput.trim(),
-                price: parseFloat(priceInput),
-                platform: platformInput
-            };
-
-            // Vérifier que le prix est valide
-            if (isNaN(newSale.price) || newSale.price <= 0) {
+            const price = parseFloat(priceInput);
+            if (isNaN(price) || price <= 0) {
                 alert('⚠️ Le prix doit être un nombre positif!');
                 return;
             }
 
-            const sales = await loadData();
+            const newSale = {
+                id: Date.now(),
+                date: dateInput,
+                product: productInput.trim(),
+                price: price,
+                platform: platformInput
+            };
+
+            const sales = loadData();
             sales.push(newSale);
-            await saveData(sales);
+            saveData(sales);
 
             console.log('✅ Vente enregistrée:', newSale);
-            console.log('📊 Toutes les ventes:', await loadData());
+            console.log('📊 Toutes les ventes:', sales);
 
             // Réinitialiser le formulaire
             this.reset();
             document.getElementById('date').valueAsDate = new Date();
-            
+
             // Actualiser l'affichage
-            await renderTable();
-            await updateStats();
+            populateMonthFilter();
+            renderTable();
+            updateStats();
 
             // Message de confirmation
             alert('✅ Vente enregistrée avec succès!');
         });
 
         // Supprimer une vente
-        async function deleteSale(id) {
+        function deleteSale(id) {
             if (confirm('Êtes-vous sûr de vouloir supprimer cette vente?')) {
-                let sales = await loadData();
+                let sales = loadData();
                 sales = sales.filter(s => s.id !== id);
-                await saveData(sales);
-                await renderTable();
-                await updateStats();
+                saveData(sales);
+                populateMonthFilter();
+                renderTable();
+                updateStats();
+                console.log('✅ Vente supprimée');
             }
         }
 
         // Remplir le dropdown des mois
-        async function populateMonthFilter() {
-            const sales = await loadData();
+        function populateMonthFilter() {
+            const sales = loadData();
             const monthSet = new Set();
 
             sales.forEach(sale => {
@@ -562,6 +590,9 @@
 
             const sortedMonths = Array.from(monthSet).sort().reverse();
             const select = document.getElementById('monthFilter');
+            
+            // Garder l'option "Afficher tout"
+            select.innerHTML = '<option value="">Afficher tout</option>';
             
             sortedMonths.forEach(monthYear => {
                 const [year, month] = monthYear.split('-');
@@ -574,8 +605,8 @@
         }
 
         // Afficher le tableau avec filtre optionnel
-        async function renderTable(filterMonth = '') {
-            let sales = await loadData();
+        function renderTable(filterMonth = '') {
+            let sales = loadData();
             const container = document.getElementById('tableContainer');
 
             // Filtrer par mois si sélectionné
@@ -590,12 +621,13 @@
             // Calculer et afficher le chiffre d'affaires du mois filtré
             const monthlyTotal = sales.reduce((sum, s) => sum + s.price, 0);
             const monthlyDisplay = document.getElementById('monthlyRevenue');
+            
             if (filterMonth) {
                 const [year, month] = filterMonth.split('-');
                 const monthName = new Date(year, month - 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
                 monthlyDisplay.textContent = `Chiffre d'affaires ${monthName.charAt(0).toUpperCase() + monthName.slice(1)}: ${monthlyTotal.toFixed(2)}€`;
             } else {
-                monthlyDisplay.textContent = 'Chiffre d'affaires: 0.00€';
+                monthlyDisplay.textContent = 'Chiffre d\'affaires: 0.00€';
             }
 
             if (sales.length === 0) {
@@ -641,8 +673,8 @@
         }
 
         // Mettre à jour les statistiques
-        async function updateStats() {
-            const sales = await loadData();
+        function updateStats() {
+            const sales = loadData();
 
             if (sales.length === 0) {
                 document.getElementById('totalRevenue').textContent = '0.00€';
@@ -669,9 +701,11 @@
                 platformCount[sale.platform] = (platformCount[sale.platform] || 0) + 1;
             });
 
-            const topPlatform = Object.entries(platformCount).sort((a, b) => b[1] - a[1])[0];
-            document.getElementById('topPlatform').textContent = topPlatform[0];
-            document.getElementById('topPlatformCount').textContent = `${topPlatform[1]} ${topPlatform[1] > 1 ? 'ventes' : 'vente'}`;
+            const topPlatformEntry = Object.entries(platformCount).sort((a, b) => b[1] - a[1])[0];
+            if (topPlatformEntry) {
+                document.getElementById('topPlatform').textContent = topPlatformEntry[0];
+                document.getElementById('topPlatformCount').textContent = `${topPlatformEntry[1]} ${topPlatformEntry[1] > 1 ? 'ventes' : 'vente'}`;
+            }
         }
 
         // Initialiser la date du jour
@@ -683,14 +717,10 @@
         });
 
         // Initialiser et charger au démarrage
-        initDB().then(() => {
-            populateMonthFilter();
-            renderTable();
-            updateStats();
-        }).catch(err => {
-            console.error('❌ Erreur IndexedDB:', err);
-            alert('Erreur de base de données. Actualisez la page.');
-        });
+        populateMonthFilter();
+        renderTable();
+        updateStats();
+        console.log('✅ Application démarrée avec succès');
     </script>
 </body>
 </html>
