@@ -627,7 +627,10 @@
                 const monthName = new Date(year, month - 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
                 monthlyDisplay.textContent = `Chiffre d'affaires ${monthName.charAt(0).toUpperCase() + monthName.slice(1)}: ${monthlyTotal.toFixed(2)}€`;
             } else {
-                monthlyDisplay.textContent = 'Chiffre d\'affaires: 0.00€';
+                // Quand "Afficher tout", afficher le CA total de TOUS les mois
+                const allSales = loadData();
+                const totalAllSales = allSales.reduce((sum, s) => sum + s.price, 0);
+                monthlyDisplay.textContent = `Chiffre d'affaires total: ${totalAllSales.toFixed(2)}€`;
             }
 
             if (sales.length === 0) {
