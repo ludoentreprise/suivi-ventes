@@ -454,22 +454,48 @@
         document.getElementById('salesForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
+            const dateInput = document.getElementById('date').value;
+            const productInput = document.getElementById('product').value;
+            const priceInput = document.getElementById('price').value;
+            const platformInput = document.getElementById('platform').value;
+
+            // Validation stricte
+            if (!dateInput || !productInput || !priceInput || !platformInput) {
+                alert('⚠️ Tous les champs sont obligatoires!');
+                return;
+            }
+
             const newSale = {
                 id: Date.now(),
-                date: document.getElementById('date').value,
-                product: document.getElementById('product').value,
-                price: parseFloat(document.getElementById('price').value),
-                platform: document.getElementById('platform').value
+                date: dateInput,
+                product: productInput.trim(),
+                price: parseFloat(priceInput),
+                platform: platformInput
             };
+
+            // Vérifier que le prix est valide
+            if (isNaN(newSale.price) || newSale.price <= 0) {
+                alert('⚠️ Le prix doit être un nombre positif!');
+                return;
+            }
 
             const sales = loadData();
             sales.push(newSale);
             saveData(sales);
 
+            console.log('✅ Vente enregistrée:', newSale);
+            console.log('📊 Toutes les ventes:', loadData());
+
+            // Réinitialiser le formulaire
             this.reset();
             document.getElementById('date').valueAsDate = new Date();
+            
+            // Actualiser l'affichage
             renderTable();
             updateStats();
+
+            // Message de confirmation
+            alert('✅ Vente enregistrée avec succès!');
         });
 
         // Supprimer une vente
