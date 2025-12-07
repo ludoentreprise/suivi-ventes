@@ -7,20 +7,20 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* THÈME 1: OBSIDIAN SLATE */
-            --bg-body: #0f172a;       /* Fond principal sombre */
-            --bg-card: #1e293b;       /* Fond des cartes */
-            --bg-input: #020617;      /* Fond des champs */
-            --text-main: #f8fafc;     /* Blanc cassé */
-            --text-muted: #94a3b8;    /* Gris clair */
-            --border: #334155;        /* Bordures */
-            --primary: #3b82f6;       /* Bleu */
-            --primary-hover: #2563eb;
-            --success: #34d399;       /* Vert */
-            --danger: #ef4444;        /* Rouge */
-            --badge-bg: rgba(59, 130, 246, 0.15);
-            --badge-text: #60a5fa;
-            --radius: 12px;
+            /* THÈME 2: DEEP MIDNIGHT */
+            --bg-body: #020617;       /* Noir bleuté profond */
+            --bg-card: #0f172a;       /* Bleu nuit */
+            --bg-input: #1e293b;      /* Gris bleu */
+            --text-main: #ffffff;     /* Blanc pur */
+            --text-muted: #94a3b8;    /* Gris moyen */
+            --border: #1e293b;        /* Bordure discrète */
+            --primary: #6366f1;       /* Indigo */
+            --primary-hover: #4f46e5;
+            --success: #fbbf24;       /* OR / AMBRE (Pour l'argent) */
+            --danger: #f87171;        /* Rouge pastel */
+            --badge-bg: rgba(99, 102, 241, 0.2);
+            --badge-text: #c7d2fe;
+            --radius: 8px;            /* Coins un peu plus carrés */
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -37,7 +37,7 @@
         .stat-card { background: var(--bg-card); padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); display: flex; flex-direction: column; }
         .stat-label { font-size: 0.875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
         .stat-value { font-size: 2rem; font-weight: 700; color: var(--text-main); }
-        .stat-value.money { color: var(--success); }
+        .stat-value.money { color: var(--success); text-shadow: 0 0 15px rgba(251, 191, 36, 0.2); }
         .stat-subtext { font-size: 0.875rem; color: var(--text-muted); margin-top: auto; padding-top: 0.5rem; }
 
         /* FORMS & CARDS */
@@ -47,30 +47,30 @@
         .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
         label { font-size: 0.875rem; font-weight: 500; color: var(--text-muted); }
         
-        input, select { padding: 0.75rem; background-color: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; color: var(--text-main); width: 100%; transition: all 0.2s; }
+        input, select { padding: 0.75rem; background-color: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius); font-size: 1rem; color: var(--text-main); width: 100%; transition: all 0.2s; }
         input:focus, select:focus { outline: none; border-color: var(--primary); }
         ::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.6; cursor: pointer; }
 
         .button-group { display: flex; gap: 1rem; }
-        button { padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; flex: 1; transition: 0.2s; }
+        button { padding: 0.75rem 1.5rem; border-radius: var(--radius); font-weight: 600; cursor: pointer; border: none; flex: 1; transition: 0.2s; }
         .btn-primary { background-color: var(--primary); color: white; }
         .btn-primary:hover { background-color: var(--primary-hover); }
         .btn-secondary { background-color: transparent; border: 1px solid var(--border); color: var(--text-muted); }
         .btn-secondary:hover { background-color: var(--bg-input); color: var(--text-main); }
 
         /* TABLE */
-        .filter-wrapper { background: var(--bg-input); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid var(--border); }
+        .filter-wrapper { background: var(--bg-input); padding: 1rem; border-radius: var(--radius); margin-bottom: 1.5rem; border: 1px solid var(--border); }
         .monthly-highlight { font-weight: 700; color: var(--success); font-size: 1.1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
-        .table-responsive { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+        .table-responsive { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
         table { width: 100%; border-collapse: collapse; text-align: left; }
-        th { padding: 1rem; background-color: rgba(0,0,0,0.2); font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; }
+        th { padding: 1rem; background-color: rgba(0,0,0,0.3); font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; }
         td { padding: 1rem; border-top: 1px solid var(--border); color: var(--text-main); font-size: 0.95rem; }
         tr:hover td { background-color: rgba(255,255,255,0.03); }
         
         .platform-tag { padding: 0.25rem 0.75rem; border-radius: 99px; font-size: 0.75rem; font-weight: 600; background-color: var(--badge-bg); color: var(--badge-text); }
         .price-tag { font-family: monospace; font-weight: 700; color: var(--success); }
-        .btn-delete { background-color: rgba(239, 68, 68, 0.15); color: var(--danger); padding: 0.4rem 0.8rem; font-size: 0.8rem; flex: none; width: auto; }
-        .btn-delete:hover { background-color: rgba(239, 68, 68, 0.25); }
+        .btn-delete { background-color: rgba(248, 113, 113, 0.1); color: var(--danger); padding: 0.4rem 0.8rem; font-size: 0.8rem; flex: none; width: auto; }
+        .btn-delete:hover { background-color: rgba(248, 113, 113, 0.2); }
         .empty-state { padding: 3rem; text-align: center; color: var(--text-muted); }
 
         @media (max-width: 640px) { h1 { font-size: 1.5rem; } .form-grid { grid-template-columns: 1fr; } }
@@ -80,7 +80,7 @@
     <div class="container">
         <header>
             <h1>📈 Suivi Ventes & URSSAF</h1>
-            <p class="subtitle">Thème Obsidian Slate</p>
+            <p class="subtitle">Thème Deep Midnight</p>
         </header>
 
         <div class="stats-grid">
