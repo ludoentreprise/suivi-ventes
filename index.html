@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suivi Ventes & URSSAF</title>
+    <title>Suivi Ventes & URSSAF (Cloud)</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* THÈME OLED BLACK (Noir Pur & Minimaliste) */
+            /* THÈME OLED BLACK */
             --bg-body: #000000;
             --bg-card: #0a0a0a;
             --bg-input: #171717;
@@ -20,10 +20,9 @@
             --danger: #ef4444;
             --badge-bg: #262626;
             --badge-text: #e5e5e5;
-            --radius: 8px; /* Un peu plus arrondi pour la modernité */
+            --radius: 8px;
         }
 
-        /* RESET STANDARD */
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
@@ -35,311 +34,145 @@
             min-height: 100vh;
         }
 
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
+        .container { max-width: 1000px; margin: 0 auto; display: none; /* Masqué tant que pas connecté */ }
 
+        /* --- LOGIN SCREEN --- */
+        #auth-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-body);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 9999; padding: 20px;
+        }
+        .auth-card {
+            background: var(--bg-card); padding: 2.5rem; border-radius: 16px;
+            border: 1px solid var(--border); width: 100%; max-width: 400px; text-align: center;
+        }
+        .auth-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 2rem; color: var(--text-main); }
+        
         /* HEADER */
-        header {
-            margin-bottom: 2rem;
-            text-align: center;
+        header { margin-bottom: 2rem; text-align: center; position: relative; }
+        h1 { font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem; letter-spacing: -0.05em; }
+        
+        .btn-logout {
+            position: absolute; right: 0; top: 0;
+            background: transparent; border: 1px solid var(--border); color: var(--text-muted);
+            padding: 0.5rem 1rem; font-size: 0.8rem; border-radius: var(--radius); cursor: pointer;
         }
+        .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
 
-        h1 {
-            font-size: 2rem;
-            font-weight: 800;
-            color: var(--text-main);
-            margin-bottom: 0.5rem;
-            letter-spacing: -0.05em;
-        }
-
-        /* STATISTIQUES (GRID) */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
+        /* STATS */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
         .stat-card {
-            background: var(--bg-card);
-            padding: 1.5rem;
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
+            background: var(--bg-card); padding: 1.5rem; border-radius: var(--radius);
+            border: 1px solid var(--border); display: flex; flex-direction: column;
             transition: transform 0.2s ease, border-color 0.2s ease;
         }
-
-        /* Petit effet au survol des stats */
-        .stat-card:hover {
-            border-color: var(--text-muted);
-            transform: translateY(-2px);
-        }
-
-        .stat-label {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--text-main);
-            letter-spacing: -0.05em;
-        }
-
+        .stat-card:hover { border-color: var(--text-muted); transform: translateY(-2px); }
+        .stat-label { font-size: 0.875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+        .stat-value { font-size: 2rem; font-weight: 700; color: var(--text-main); letter-spacing: -0.05em; }
         .stat-value.money { color: var(--success); }
-
-        .stat-subtext {
-            font-size: 0.875rem;
-            color: var(--text-muted);
-            margin-top: auto;
-            padding-top: 0.5rem;
-        }
+        .stat-subtext { font-size: 0.875rem; color: var(--text-muted); margin-top: auto; padding-top: 0.5rem; }
 
         /* CARDS */
-        .card {
-            background: var(--bg-card);
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
-            padding: 2rem;
-            margin-bottom: 2rem;
-        }
-
+        .card { background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border); padding: 2rem; margin-bottom: 2rem; }
         .section-header { margin-bottom: 1.5rem; }
+        .card-title { font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin-bottom: 1.5rem; }
 
-        .card-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--text-main);
-            margin-bottom: 1.5rem;
-        }
-
-        /* FORMULAIRE */
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
-
-        label {
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--text-muted);
-        }
-
+        /* FORMS */
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem; }
+        .form-group { display: flex; flex-direction: column; gap: 0.5rem; text-align: left; }
+        label { font-size: 0.875rem; font-weight: 500; color: var(--text-muted); }
+        
         input, select {
-            padding: 0.75rem;
-            background-color: var(--bg-input);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            font-size: 1rem;
-            color: var(--text-main);
-            font-family: inherit;
-            width: 100%;
-            transition: all 0.2s ease;
+            padding: 0.75rem; background-color: var(--bg-input); border: 1px solid var(--border);
+            border-radius: var(--radius); font-size: 1rem; color: var(--text-main);
+            font-family: inherit; width: 100%; transition: all 0.2s ease; margin-bottom: 1rem;
         }
-
-        /* Amélioration UX : Focus visible */
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--text-main);
-            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
-        }
-
-        ::-webkit-calendar-picker-indicator {
-            filter: invert(1);
-            opacity: 0.6;
-            cursor: pointer;
-        }
+        input:focus, select:focus { outline: none; border-color: var(--text-main); box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1); }
+        
+        ::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.6; cursor: pointer; }
 
         .button-group { display: flex; gap: 1rem; }
+        .button-group-vertical { display: flex; flex-direction: column; gap: 1rem; }
 
         button {
-            padding: 0.75rem 1.5rem;
-            border-radius: var(--radius);
-            font-weight: 600;
-            font-size: 0.95rem;
-            cursor: pointer;
-            border: none;
-            transition: all 0.2s;
-            flex: 1;
+            padding: 0.75rem 1.5rem; border-radius: var(--radius); font-weight: 600;
+            font-size: 0.95rem; cursor: pointer; border: none; transition: all 0.2s; flex: 1;
         }
+        .btn-primary { background-color: var(--primary); color: #000000; }
+        .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+        .btn-secondary { background-color: transparent; border: 1px solid var(--border); color: var(--text-muted); }
+        .btn-secondary:hover { background-color: var(--bg-input); color: var(--text-main); }
 
-        .btn-primary {
-            background-color: var(--primary);
-            color: #000000;
-        }
-        .btn-primary:hover {
-            background-color: var(--primary-hover);
-            transform: translateY(-1px);
-        }
-        .btn-primary:active { transform: translateY(0); }
-
-        .btn-secondary {
-            background-color: transparent;
-            border: 1px solid var(--border);
-            color: var(--text-muted);
-        }
-        .btn-secondary:hover {
-            background-color: var(--bg-input);
-            color: var(--text-main);
-        }
-
-        /* TABLEAU & FILTRES */
-        .filter-wrapper {
-            background: var(--bg-input);
-            padding: 1rem;
-            border-radius: var(--radius);
-            margin-bottom: 1.5rem;
-            border: 1px solid var(--border);
-        }
-
-        .monthly-highlight {
-            font-weight: 700;
-            color: var(--success);
-            font-size: 1.1rem;
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border);
-        }
-
-        .table-responsive {
-            overflow-x: auto;
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
-            max-height: 500px; /* Limite la hauteur si beaucoup de ventes */
-            overflow-y: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-            font-size: 0.95rem;
-        }
-
-        /* Amélioration UX : Sticky Header (Titre reste visible au scroll) */
+        /* TABLE */
+        .filter-wrapper { background: var(--bg-input); padding: 1rem; border-radius: var(--radius); margin-bottom: 1.5rem; border: 1px solid var(--border); }
+        .monthly-highlight { font-weight: 700; color: var(--success); font-size: 1.1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+        .table-responsive { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); max-height: 500px; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem; }
         th {
-            position: sticky;
-            top: 0;
-            padding: 1rem;
-            background-color: #000000; /* Doit être opaque pour cacher le scroll */
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.05em;
-            border-bottom: 1px solid var(--border);
-            z-index: 10;
+            position: sticky; top: 0; padding: 1rem; background-color: #000000;
+            font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem;
+            letter-spacing: 0.05em; border-bottom: 1px solid var(--border); z-index: 10;
         }
-
-        td {
-            padding: 1rem;
-            border-top: 1px solid var(--border);
-            color: var(--text-main);
-        }
-
+        td { padding: 1rem; border-top: 1px solid var(--border); color: var(--text-main); }
         tr { transition: background-color 0.2s; }
         tr:hover td { background-color: #171717; }
-        
-        /* Animation d'apparition des lignes */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        tbody tr { animation: fadeIn 0.3s ease-out; }
 
         .platform-tag {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            background-color: var(--badge-bg);
-            color: var(--badge-text);
-            border: 1px solid var(--border);
+            display: inline-flex; align-items: center; padding: 0.25rem 0.75rem; border-radius: 99px;
+            font-size: 0.75rem; font-weight: 600; background-color: var(--badge-bg); color: var(--badge-text); border: 1px solid var(--border);
         }
-
-        .price-tag {
-            font-family: 'Courier New', monospace;
-            font-weight: 700;
-            color: var(--success);
-        }
-
+        .price-tag { font-family: 'Courier New', monospace; font-weight: 700; color: var(--success); }
         .btn-delete {
-            background-color: transparent;
-            border: 1px solid var(--border);
-            color: var(--danger);
-            padding: 0.4rem 0.8rem;
-            font-size: 0.9rem; /* Un peu plus grand pour faciliter le clic */
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-            line-height: 1;
+            background-color: transparent; border: 1px solid var(--border); color: var(--danger);
+            padding: 0.4rem 0.8rem; font-size: 0.9rem; border-radius: 4px; cursor: pointer; transition: all 0.2s; line-height: 1;
         }
-        .btn-delete:hover {
-            background-color: rgba(239, 68, 68, 0.1);
-            border-color: var(--danger);
-        }
+        .btn-delete:hover { background-color: rgba(239, 68, 68, 0.1); border-color: var(--danger); }
+        .empty-state { padding: 3rem; text-align: center; color: var(--text-muted); }
 
-        .empty-state {
-            padding: 3rem;
-            text-align: center;
-            color: var(--text-muted);
-        }
-
-        /* NOTIFICATION TOAST (NOUVEAU) */
+        /* TOAST */
         .toast {
-            visibility: hidden;
-            min-width: 250px;
-            background-color: var(--bg-input);
-            color: var(--text-main);
-            text-align: center;
-            border-radius: 8px;
-            padding: 16px;
-            position: fixed;
-            z-index: 100;
-            left: 50%;
-            bottom: 30px;
-            transform: translateX(-50%);
-            border: 1px solid var(--success);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            font-weight: 500;
-            opacity: 0;
-            transition: opacity 0.3s, bottom 0.3s;
+            visibility: hidden; min-width: 250px; background-color: var(--bg-input); color: var(--text-main);
+            text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 100;
+            left: 50%; bottom: 30px; transform: translateX(-50%); border: 1px solid var(--success);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5); font-weight: 500; opacity: 0; transition: opacity 0.3s, bottom 0.3s;
         }
+        .toast.show { visibility: visible; opacity: 1; bottom: 50px; }
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--text-main); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; margin-right: 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .toast.show {
-            visibility: visible;
-            opacity: 1;
-            bottom: 50px;
-        }
-
-        /* MOBILE */
         @media (max-width: 640px) {
-            h1 { font-size: 1.5rem; }
-            .form-grid { grid-template-columns: 1fr; }
-            th, td { padding: 0.75rem; }
-            .button-group { flex-direction: column; } /* Boutons empilés sur mobile */
+            h1 { font-size: 1.5rem; } .form-grid { grid-template-columns: 1fr; } 
+            th, td { padding: 0.75rem; } .button-group { flex-direction: column; }
+            .btn-logout { position: relative; display: block; width: 100%; margin-bottom: 1rem; text-align: center; }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
+    <div id="auth-screen">
+        <div class="auth-card">
+            <h2 class="auth-title">🔐 Connexion</h2>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="email" placeholder="votre@email.com">
+            </div>
+            <div class="form-group">
+                <label>Mot de passe</label>
+                <input type="password" id="password" placeholder="******">
+            </div>
+            <div class="button-group-vertical">
+                <button class="btn-primary" onclick="login()">Se connecter</button>
+                <button class="btn-secondary" onclick="register()">Créer un compte</button>
+            </div>
+            <p id="auth-error" style="color: var(--danger); margin-top: 1rem; font-size: 0.9rem;"></p>
+        </div>
+    </div>
+
+    <div class="container" id="app-container">
         <header>
             <h1>📈 Suivi Ventes & URSSAF</h1>
+            <button class="btn-logout" onclick="logout()">Se déconnecter</button>
         </header>
 
         <div class="stats-grid">
@@ -409,101 +242,192 @@
                     </select>
                 </div>
                 <div id="monthlyRevenue" class="monthly-highlight">
-                    Sélectionnez un mois pour voir le total à déclarer.
+                    Chargement des données...
                 </div>
             </div>
 
             <div class="table-responsive" id="tableContainer">
-                <div class="empty-state">Chargement...</div>
+                <div class="empty-state"><div class="loader"></div>Chargement...</div>
             </div>
         </div>
     </div>
 
-    <div id="toast" class="toast">✅ Vente enregistrée avec succès !</div>
+    <div id="toast" class="toast">Notification</div>
 
-    <script>
-        const STORAGE_KEY = 'SuiviVentesData';
+    <script type="module">
+        // Import des fonctions Firebase depuis le CDN
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // Fonction pour afficher la notification Toast
-        function showToast(message) {
-            const toast = document.getElementById("toast");
-            toast.textContent = message;
-            toast.className = "toast show";
-            setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
-        }
+        // TA CONFIGURATION (Copiée de ton message)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDhlCjxx0FeYOqZPbZiHD9BTYmTsl0PVCQ",
+            authDomain: "suivi-ventes.firebaseapp.com",
+            projectId: "suivi-ventes",
+            storageBucket: "suivi-ventes.firebasestorage.app",
+            messagingSenderId: "272523591744",
+            appId: "1:272523591744:web:8f1ca8fbdfa2858f711fa5"
+        };
 
-        function loadData() {
-            try {
-                const data = localStorage.getItem(STORAGE_KEY);
-                return data ? JSON.parse(data) : [];
-            } catch (error) {
-                console.error('Erreur chargement:', error);
-                return [];
+        // Initialisation
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+        let salesData = [];
+        let unsubscribe = null; // Pour arrêter d'écouter la base de données quand on se déconnecte
+
+        // --- AUTHENTIFICATION ---
+
+        // Surveiller l'état de connexion
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Connecté
+                currentUser = user;
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('app-container').style.display = 'block';
+                startListeningToSales();
+                showToast("✅ Connecté !");
+            } else {
+                // Déconnecté
+                currentUser = null;
+                document.getElementById('auth-screen').style.display = 'flex';
+                document.getElementById('app-container').style.display = 'none';
+                if(unsubscribe) unsubscribe();
             }
-        }
+        });
 
-        function saveData(sales) {
+        // Fonctions globales pour les boutons HTML
+        window.login = async () => {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+            const errorMsg = document.getElementById('auth-error');
+            errorMsg.textContent = "";
+
             try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(sales));
+                await signInWithEmailAndPassword(auth, email, pass);
             } catch (error) {
-                console.error('Erreur sauvegarde:', error);
-                alert('Erreur de sauvegarde. Vérifiez votre stockage.');
+                errorMsg.textContent = "Erreur : Email ou mot de passe incorrect.";
+                console.error(error);
             }
+        };
+
+        window.register = async () => {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+            const errorMsg = document.getElementById('auth-error');
+            errorMsg.textContent = "";
+
+            if(pass.length < 6) {
+                errorMsg.textContent = "Le mot de passe doit faire au moins 6 caractères.";
+                return;
+            }
+
+            try {
+                await createUserWithEmailAndPassword(auth, email, pass);
+                // La connexion est automatique après la création
+            } catch (error) {
+                if(error.code === 'auth/email-already-in-use') {
+                    errorMsg.textContent = "Cet email a déjà un compte. Connectez-vous.";
+                } else {
+                    errorMsg.textContent = "Erreur lors de la création du compte.";
+                    console.error(error);
+                }
+            }
+        };
+
+        window.logout = () => {
+            signOut(auth);
+        };
+
+        // --- GESTION DES DONNÉES (FIRESTORE) ---
+
+        function startListeningToSales() {
+            if (!currentUser) return;
+
+            // On écoute la collection "sales" SOUS l'utilisateur (chaque user a ses données)
+            const q = query(collection(db, `users/${currentUser.uid}/sales`), orderBy("date", "desc"));
+
+            unsubscribe = onSnapshot(q, (snapshot) => {
+                salesData = [];
+                snapshot.forEach((doc) => {
+                    salesData.push({ id: doc.id, ...doc.data() });
+                });
+                refreshAll();
+            }, (error) => {
+                console.error("Erreur lecture:", error);
+                showToast("Erreur de connexion", false);
+            });
         }
 
-        document.getElementById('salesForm').addEventListener('submit', function(e) {
+        // Ajouter une vente
+        document.getElementById('salesForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            if(!currentUser) return;
 
             const dateInput = document.getElementById('date').value;
             const productInput = document.getElementById('product').value;
-            const priceInput = document.getElementById('price').value;
+            const price = parseFloat(document.getElementById('price').value);
             const platformInput = document.getElementById('platform').value;
 
-            if (!dateInput || !productInput || !priceInput || !platformInput) {
-                alert('Tous les champs sont obligatoires!');
-                return;
+            if (!dateInput || !productInput || !price || !platformInput) {
+                alert('Champs obligatoires manquants'); return;
             }
 
-            const price = parseFloat(priceInput);
-            if (isNaN(price) || price <= 0) {
-                alert('Prix invalide');
-                return;
+            const btn = this.querySelector('button[type="submit"]');
+            const originalText = btn.textContent;
+            btn.textContent = "Enregistrement...";
+            btn.disabled = true;
+
+            try {
+                await addDoc(collection(db, `users/${currentUser.uid}/sales`), {
+                    date: dateInput,
+                    product: productInput.trim(),
+                    price: price,
+                    platform: platformInput,
+                    createdAt: new Date()
+                });
+                
+                this.reset();
+                document.getElementById('date').valueAsDate = new Date();
+                showToast("✅ Vente sauvegardée dans le Cloud !");
+            } catch (error) {
+                console.error("Erreur ajout:", error);
+                showToast("Erreur lors de la sauvegarde", false);
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
             }
-
-            const newSale = {
-                id: Date.now(),
-                date: dateInput,
-                product: productInput.trim(),
-                price: price,
-                platform: platformInput
-            };
-
-            const sales = loadData();
-            sales.push(newSale);
-            saveData(sales);
-
-            this.reset();
-            document.getElementById('date').valueAsDate = new Date();
-
-            refreshAll();
-            showToast("✅ Vente enregistrée avec succès !"); // Appel de la notif
         });
 
-        function deleteSale(id) {
-            if (confirm('Êtes-vous sûr de vouloir supprimer cette vente ?')) {
-                let sales = loadData();
-                sales = sales.filter(s => s.id !== id);
-                saveData(sales);
-                refreshAll();
-                showToast("🗑️ Vente supprimée");
+        // Supprimer une vente
+        window.deleteSale = async (id) => {
+            if (confirm('Supprimer cette vente ?')) {
+                try {
+                    await deleteDoc(doc(db, `users/${currentUser.uid}/sales`, id));
+                    showToast("🗑️ Vente supprimée");
+                } catch (error) {
+                    console.error("Erreur suppression:", error);
+                    showToast("Impossible de supprimer", false);
+                }
             }
+        };
+
+        // --- UI & AFFICHAGE (IDENTIQUE À AVANT) ---
+
+        function showToast(message, isSuccess = true) {
+            const toast = document.getElementById("toast");
+            toast.textContent = message;
+            toast.style.borderColor = isSuccess ? "var(--success)" : "var(--danger)";
+            toast.className = "toast show";
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
         }
 
         function populateMonthFilter() {
-            const sales = loadData();
             const monthSet = new Set();
-
-            sales.forEach(sale => {
+            salesData.forEach(sale => {
                 const date = new Date(sale.date);
                 const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
                 monthSet.add(monthYear);
@@ -514,7 +438,6 @@
             const currentVal = select.value;
             
             select.innerHTML = '<option value="">Tout l\'historique</option>';
-            
             sortedMonths.forEach(monthYear => {
                 const [year, month] = monthYear.split('-');
                 const monthName = new Date(year, month - 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
@@ -531,60 +454,51 @@
 
         function renderTable() {
             const filterMonth = document.getElementById('monthFilter').value;
-            let sales = loadData();
+            let filteredSales = salesData;
             const container = document.getElementById('tableContainer');
 
             if (filterMonth) {
-                sales = sales.filter(sale => {
-                    const date = new Date(sale.date);
-                    const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                    return monthYear === filterMonth;
-                });
+                filteredSales = salesData.filter(sale => sale.date.startsWith(filterMonth));
             }
 
-            const monthlyTotal = sales.reduce((sum, s) => sum + s.price, 0);
-            const monthlyDisplay = document.getElementById('monthlyRevenue');
+            // Calculs
+            const total = filteredSales.reduce((sum, s) => sum + s.price, 0);
+            const disp = document.getElementById('monthlyRevenue');
             
             if (filterMonth) {
-                const [year, month] = filterMonth.split('-');
-                const monthName = new Date(year, month - 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-                monthlyDisplay.innerHTML = `Chiffre d'affaires à déclarer pour ${monthName} : <strong>${monthlyTotal.toFixed(2)}€</strong>`;
+                const [y, m] = filterMonth.split('-');
+                const name = new Date(y, m - 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+                // Note l'espace explicite avant le :
+                disp.innerHTML = `Chiffre d'affaires à déclarer pour ${name} : <strong>${total.toFixed(2)}€</strong>`;
             } else {
-                monthlyDisplay.innerHTML = `Chiffre d'affaires total affiché : <strong>${monthlyTotal.toFixed(2)}€</strong>`;
+                disp.innerHTML = `Chiffre d'affaires total affiché : <strong>${total.toFixed(2)}€</strong>`;
             }
 
-            if (sales.length === 0) {
+            if (filteredSales.length === 0) {
                 container.innerHTML = `<div class="empty-state">${filterMonth ? 'Aucune vente ce mois-ci.' : 'Aucune vente enregistrée.'}</div>`;
                 return;
             }
 
-            const sorted = [...sales].sort((a, b) => new Date(b.date) - new Date(a.date));
+            // Le tri est déjà fait par Firestore, mais on s'assure coté client aussi si besoin
+            filteredSales.sort((a, b) => new Date(b.date) - new Date(a.date));
 
             let html = '<table><thead><tr><th>Date</th><th>Produit</th><th>Plateforme</th><th>Prix</th><th></th></tr></thead><tbody>';
-
-            sorted.forEach(sale => {
-                const dateObj = new Date(sale.date);
-                const formattedDate = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }); 
-
+            filteredSales.forEach(sale => {
+                const d = new Date(sale.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
                 html += `<tr>
-                    <td>${formattedDate}</td>
+                    <td>${d}</td>
                     <td>${sale.product}</td>
                     <td><span class="platform-tag">${sale.platform}</span></td>
                     <td class="price-tag">${sale.price.toFixed(2)}€</td>
-                    <td style="text-align:right;">
-                        <button class="btn-delete" onclick="deleteSale(${sale.id})" title="Supprimer">×</button>
-                    </td>
+                    <td style="text-align:right;"><button class="btn-delete" onclick="deleteSale('${sale.id}')">×</button></td>
                 </tr>`;
             });
-
             html += '</tbody></table>';
             container.innerHTML = html;
         }
 
         function updateStats() {
-            const sales = loadData();
-
-            if (sales.length === 0) {
+            if (salesData.length === 0) {
                 document.getElementById('totalRevenue').textContent = '0.00€';
                 document.getElementById('totalCount').textContent = '0';
                 document.getElementById('topPlatform').textContent = '-';
@@ -592,19 +506,16 @@
                 return;
             }
 
-            const totalRevenue = sales.reduce((sum, s) => sum + s.price, 0);
-            document.getElementById('totalRevenue').textContent = totalRevenue.toFixed(2) + '€';
-            document.getElementById('totalCount').textContent = sales.length;
+            const total = salesData.reduce((sum, s) => sum + s.price, 0);
+            document.getElementById('totalRevenue').textContent = total.toFixed(2) + '€';
+            document.getElementById('totalCount').textContent = salesData.length;
 
-            const platformCount = {};
-            sales.forEach(sale => {
-                platformCount[sale.platform] = (platformCount[sale.platform] || 0) + 1;
-            });
-
-            const topPlatformEntry = Object.entries(platformCount).sort((a, b) => b[1] - a[1])[0];
-            if (topPlatformEntry) {
-                document.getElementById('topPlatform').textContent = topPlatformEntry[0];
-                document.getElementById('topPlatformCount').textContent = `${topPlatformEntry[1]} vente(s)`;
+            const counts = {};
+            salesData.forEach(s => counts[s.platform] = (counts[s.platform] || 0) + 1);
+            const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+            if (top) {
+                document.getElementById('topPlatform').textContent = top[0];
+                document.getElementById('topPlatformCount').textContent = `${top[1]} vente(s)`;
             }
         }
 
@@ -614,10 +525,9 @@
             updateStats();
         }
 
+        // Init UI
         document.getElementById('date').valueAsDate = new Date();
         document.getElementById('monthFilter').addEventListener('change', renderTable);
-        
-        refreshAll();
     </script>
 </body>
 </html>
