@@ -8,20 +8,19 @@
     <style>
         :root {
             /* THÈME OLED BLACK (Noir Pur & Minimaliste) */
-            --bg-body: #000000;       /* Noir pur */
-            --bg-card: #0a0a0a;       /* Gris quasi noir pour les blocs */
-            --bg-input: #171717;      /* Gris foncé pour les champs */
-            --text-main: #e5e5e5;     /* Texte principal (Gris clair) */
-            --text-muted: #737373;    /* Texte secondaire (Gris moyen) */
-            --border: #262626;        /* Bordures visibles pour délimiter */
-            --primary: #e5e5e5;       /* Blanc cassé pour les boutons */
-            --primary-hover: #ffffff; /* Blanc pur au survol */
-            --success: #22c55e;       /* Vert standard pour l'argent */
-            --danger: #ef4444;        /* Rouge pour les suppressions */
-            --badge-bg: #262626;      /* Fond des étiquettes */
-            --badge-text: #e5e5e5;    /* Texte des étiquettes */
-            
-            --radius: 6px;            /* Coins carrés minimalistes */
+            --bg-body: #000000;
+            --bg-card: #0a0a0a;
+            --bg-input: #171717;
+            --text-main: #e5e5e5;
+            --text-muted: #737373;
+            --border: #262626;
+            --primary: #e5e5e5;
+            --primary-hover: #ffffff;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --badge-bg: #262626;
+            --badge-text: #e5e5e5;
+            --radius: 8px; /* Un peu plus arrondi pour la modernité */
         }
 
         /* RESET STANDARD */
@@ -55,11 +54,6 @@
             letter-spacing: -0.05em;
         }
 
-        .subtitle {
-            color: var(--text-muted);
-            font-size: 1rem;
-        }
-
         /* STATISTIQUES (GRID) */
         .stats-grid {
             display: grid;
@@ -75,6 +69,13 @@
             border: 1px solid var(--border);
             display: flex;
             flex-direction: column;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        /* Petit effet au survol des stats */
+        .stat-card:hover {
+            border-color: var(--text-muted);
+            transform: translateY(-2px);
         }
 
         .stat-label {
@@ -102,7 +103,7 @@
             padding-top: 0.5rem;
         }
 
-        /* BLOCS FORMULAIRE ET TABLEAU */
+        /* CARDS */
         .card {
             background: var(--bg-card);
             border-radius: var(--radius);
@@ -111,9 +112,7 @@
             margin-bottom: 2rem;
         }
 
-        .section-header {
-            margin-bottom: 1.5rem;
-        }
+        .section-header { margin-bottom: 1.5rem; }
 
         .card-title {
             font-size: 1.25rem;
@@ -130,11 +129,7 @@
             margin-bottom: 1.5rem;
         }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
+        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
 
         label {
             font-size: 0.875rem;
@@ -151,25 +146,23 @@
             color: var(--text-main);
             font-family: inherit;
             width: 100%;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
         }
 
+        /* Amélioration UX : Focus visible */
         input:focus, select:focus {
             outline: none;
-            border-color: var(--text-muted);
+            border-color: var(--text-main);
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
         }
 
-        /* Astuce pour rendre l'icône calendrier blanche sur fond noir */
         ::-webkit-calendar-picker-indicator {
             filter: invert(1);
             opacity: 0.6;
             cursor: pointer;
         }
 
-        .button-group {
-            display: flex;
-            gap: 1rem;
-        }
+        .button-group { display: flex; gap: 1rem; }
 
         button {
             padding: 0.75rem 1.5rem;
@@ -184,11 +177,13 @@
 
         .btn-primary {
             background-color: var(--primary);
-            color: #000000; /* Texte noir sur bouton blanc pour contraste */
+            color: #000000;
         }
         .btn-primary:hover {
             background-color: var(--primary-hover);
+            transform: translateY(-1px);
         }
+        .btn-primary:active { transform: translateY(0); }
 
         .btn-secondary {
             background-color: transparent;
@@ -216,13 +211,14 @@
             margin-top: 1rem;
             padding-top: 1rem;
             border-top: 1px solid var(--border);
-            /* Suppression du display flex qui mangeait l'espace */
         }
 
         .table-responsive {
             overflow-x: auto;
             border-radius: var(--radius);
             border: 1px solid var(--border);
+            max-height: 500px; /* Limite la hauteur si beaucoup de ventes */
+            overflow-y: auto;
         }
 
         table {
@@ -232,15 +228,19 @@
             font-size: 0.95rem;
         }
 
+        /* Amélioration UX : Sticky Header (Titre reste visible au scroll) */
         th {
+            position: sticky;
+            top: 0;
             padding: 1rem;
-            background-color: #000000;
+            background-color: #000000; /* Doit être opaque pour cacher le scroll */
             font-weight: 600;
             color: var(--text-muted);
             text-transform: uppercase;
             font-size: 0.75rem;
             letter-spacing: 0.05em;
             border-bottom: 1px solid var(--border);
+            z-index: 10;
         }
 
         td {
@@ -249,9 +249,15 @@
             color: var(--text-main);
         }
 
-        tr:hover td {
-            background-color: #171717;
+        tr { transition: background-color 0.2s; }
+        tr:hover td { background-color: #171717; }
+        
+        /* Animation d'apparition des lignes */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
+        tbody tr { animation: fadeIn 0.3s ease-out; }
 
         .platform-tag {
             display: inline-flex;
@@ -276,12 +282,14 @@
             border: 1px solid var(--border);
             color: var(--danger);
             padding: 0.4rem 0.8rem;
-            font-size: 0.8rem;
-            flex: none;
-            width: auto;
+            font-size: 0.9rem; /* Un peu plus grand pour faciliter le clic */
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            line-height: 1;
         }
         .btn-delete:hover {
-            background-color: #171717;
+            background-color: rgba(239, 68, 68, 0.1);
             border-color: var(--danger);
         }
 
@@ -291,11 +299,39 @@
             color: var(--text-muted);
         }
 
+        /* NOTIFICATION TOAST (NOUVEAU) */
+        .toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: var(--bg-input);
+            color: var(--text-main);
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 100;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            border: 1px solid var(--success);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.3s, bottom 0.3s;
+        }
+
+        .toast.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 50px;
+        }
+
         /* MOBILE */
         @media (max-width: 640px) {
             h1 { font-size: 1.5rem; }
             .form-grid { grid-template-columns: 1fr; }
             th, td { padding: 0.75rem; }
+            .button-group { flex-direction: column; } /* Boutons empilés sur mobile */
         }
     </style>
 </head>
@@ -355,7 +391,7 @@
                 </div>
                 <div class="button-group">
                     <button type="reset" class="btn-secondary">Réinitialiser</button>
-                    <button type="submit" class="btn-primary">Enregistrer</button>
+                    <button type="submit" class="btn-primary">Enregistrer la vente</button>
                 </div>
             </form>
         </div>
@@ -383,10 +419,19 @@
         </div>
     </div>
 
+    <div id="toast" class="toast">✅ Vente enregistrée avec succès !</div>
+
     <script>
         const STORAGE_KEY = 'SuiviVentesData';
 
-        // Charger les données depuis localStorage
+        // Fonction pour afficher la notification Toast
+        function showToast(message) {
+            const toast = document.getElementById("toast");
+            toast.textContent = message;
+            toast.className = "toast show";
+            setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
         function loadData() {
             try {
                 const data = localStorage.getItem(STORAGE_KEY);
@@ -397,7 +442,6 @@
             }
         }
 
-        // Sauvegarder les données dans localStorage
         function saveData(sales) {
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(sales));
@@ -407,7 +451,6 @@
             }
         }
 
-        // Ajouter une vente
         document.getElementById('salesForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
@@ -416,7 +459,6 @@
             const priceInput = document.getElementById('price').value;
             const platformInput = document.getElementById('platform').value;
 
-            // Validation simple
             if (!dateInput || !productInput || !priceInput || !platformInput) {
                 alert('Tous les champs sont obligatoires!');
                 return;
@@ -440,41 +482,37 @@
             sales.push(newSale);
             saveData(sales);
 
-            // Reset du formulaire
             this.reset();
-            document.getElementById('date').valueAsDate = new Date(); // Remet la date du jour
+            document.getElementById('date').valueAsDate = new Date();
 
             refreshAll();
+            showToast("✅ Vente enregistrée avec succès !"); // Appel de la notif
         });
 
-        // Supprimer une vente
         function deleteSale(id) {
             if (confirm('Êtes-vous sûr de vouloir supprimer cette vente ?')) {
                 let sales = loadData();
                 sales = sales.filter(s => s.id !== id);
                 saveData(sales);
                 refreshAll();
+                showToast("🗑️ Vente supprimée");
             }
         }
 
-        // Remplir le menu déroulant des mois
         function populateMonthFilter() {
             const sales = loadData();
             const monthSet = new Set();
 
             sales.forEach(sale => {
                 const date = new Date(sale.date);
-                // Format YYYY-MM pour le tri
                 const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
                 monthSet.add(monthYear);
             });
 
-            // Trier du plus récent au plus ancien
             const sortedMonths = Array.from(monthSet).sort().reverse();
             const select = document.getElementById('monthFilter');
             const currentVal = select.value;
             
-            // Reconstruire les options
             select.innerHTML = '<option value="">Tout l\'historique</option>';
             
             sortedMonths.forEach(monthYear => {
@@ -486,19 +524,16 @@
                 select.appendChild(option);
             });
 
-            // Restaurer la sélection si elle existe encore
             if(currentVal && Array.from(select.options).some(o => o.value === currentVal)) {
                 select.value = currentVal;
             }
         }
 
-        // Afficher le tableau et les calculs
         function renderTable() {
             const filterMonth = document.getElementById('monthFilter').value;
             let sales = loadData();
             const container = document.getElementById('tableContainer');
 
-            // Filtrage si un mois est sélectionné
             if (filterMonth) {
                 sales = sales.filter(sale => {
                     const date = new Date(sale.date);
@@ -507,34 +542,29 @@
                 });
             }
 
-            // Calcul du total affiché
             const monthlyTotal = sales.reduce((sum, s) => sum + s.price, 0);
             const monthlyDisplay = document.getElementById('monthlyRevenue');
             
-            // FORMATAGE DU TEXTE AVEC ESPACE CORRECT
             if (filterMonth) {
                 const [year, month] = filterMonth.split('-');
                 const monthName = new Date(year, month - 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-                // Note l'espace explicite avant le : et après le :
                 monthlyDisplay.innerHTML = `Chiffre d'affaires à déclarer pour ${monthName} : <strong>${monthlyTotal.toFixed(2)}€</strong>`;
             } else {
                 monthlyDisplay.innerHTML = `Chiffre d'affaires total affiché : <strong>${monthlyTotal.toFixed(2)}€</strong>`;
             }
 
-            // Si tableau vide
             if (sales.length === 0) {
                 container.innerHTML = `<div class="empty-state">${filterMonth ? 'Aucune vente ce mois-ci.' : 'Aucune vente enregistrée.'}</div>`;
                 return;
             }
 
-            // Tri par date décroissante
             const sorted = [...sales].sort((a, b) => new Date(b.date) - new Date(a.date));
 
             let html = '<table><thead><tr><th>Date</th><th>Produit</th><th>Plateforme</th><th>Prix</th><th></th></tr></thead><tbody>';
 
             sorted.forEach(sale => {
                 const dateObj = new Date(sale.date);
-                const formattedDate = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }); // Ex: 12 Janv.
+                const formattedDate = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }); 
 
                 html += `<tr>
                     <td>${formattedDate}</td>
@@ -551,7 +581,6 @@
             container.innerHTML = html;
         }
 
-        // Mettre à jour les stats globales
         function updateStats() {
             const sales = loadData();
 
@@ -563,14 +592,10 @@
                 return;
             }
 
-            // Total CA
             const totalRevenue = sales.reduce((sum, s) => sum + s.price, 0);
             document.getElementById('totalRevenue').textContent = totalRevenue.toFixed(2) + '€';
-
-            // Nombre ventes
             document.getElementById('totalCount').textContent = sales.length;
 
-            // Top Plateforme
             const platformCount = {};
             sales.forEach(sale => {
                 platformCount[sale.platform] = (platformCount[sale.platform] || 0) + 1;
@@ -583,18 +608,15 @@
             }
         }
 
-        // Fonction centrale de rafraichissement
         function refreshAll() {
             populateMonthFilter();
             renderTable();
             updateStats();
         }
 
-        // Initialisation
         document.getElementById('date').valueAsDate = new Date();
         document.getElementById('monthFilter').addEventListener('change', renderTable);
         
-        // Démarrage
         refreshAll();
     </script>
 </body>
