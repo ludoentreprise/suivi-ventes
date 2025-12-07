@@ -7,333 +7,109 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* Palette de couleurs professionnelle et douce */
-            --primary: #2563eb;       /* Bleu royal moderne */
-            --primary-hover: #1d4ed8;
-            --bg-body: #f1f5f9;       /* Gris très clair apaisant */
-            --bg-card: #ffffff;       /* Blanc pur */
-            --text-main: #1e293b;     /* Gris foncé quasi noir */
-            --text-muted: #64748b;    /* Gris moyen */
-            --success: #10b981;       /* Vert succès */
-            --danger: #ef4444;        /* Rouge suppression */
-            --border: #e2e8f0;        /* Bordure subtile */
-            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            /* THÈME 1: OBSIDIAN SLATE */
+            --bg-body: #0f172a;       /* Fond principal sombre */
+            --bg-card: #1e293b;       /* Fond des cartes */
+            --bg-input: #020617;      /* Fond des champs */
+            --text-main: #f8fafc;     /* Blanc cassé */
+            --text-muted: #94a3b8;    /* Gris clair */
+            --border: #334155;        /* Bordures */
+            --primary: #3b82f6;       /* Bleu */
+            --primary-hover: #2563eb;
+            --success: #34d399;       /* Vert */
+            --danger: #ef4444;        /* Rouge */
+            --badge-bg: rgba(59, 130, 246, 0.15);
+            --badge-text: #60a5fa;
             --radius: 12px;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: var(--text-main); line-height: 1.5; padding: 2rem 1rem; min-height: 100vh; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        
+        /* HEADER */
+        header { margin-bottom: 2rem; text-align: center; }
+        h1 { font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--text-main); }
+        .subtitle { color: var(--text-muted); }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            line-height: 1.5;
-            padding: 2rem 1rem;
-            min-height: 100vh;
-        }
+        /* STATS */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card { background: var(--bg-card); padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); display: flex; flex-direction: column; }
+        .stat-label { font-size: 0.875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+        .stat-value { font-size: 2rem; font-weight: 700; color: var(--text-main); }
+        .stat-value.money { color: var(--success); }
+        .stat-subtext { font-size: 0.875rem; color: var(--text-muted); margin-top: auto; padding-top: 0.5rem; }
 
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        /* HEADER SIMPLIFIÉ */
-        header {
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-
-        h1 {
-            font-size: 2rem;
-            font-weight: 800;
-            color: var(--text-main);
-            letter-spacing: -0.025em;
-            margin-bottom: 0.5rem;
-        }
-
-        .subtitle {
-            color: var(--text-muted);
-            font-size: 1rem;
-        }
-
-        /* CARTES DE STATISTIQUES */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: var(--bg-card);
-            padding: 1.5rem;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .stat-label {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--text-main);
-            letter-spacing: -0.05em;
-        }
-
-        .stat-value.money { color: var(--primary); }
-
-        .stat-subtext {
-            font-size: 0.875rem;
-            color: var(--text-muted);
-            margin-top: auto;
-            padding-top: 0.5rem;
-        }
-
-        /* SECTION FORMULAIRE */
-        .card {
-            background: var(--bg-card);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--border);
-            padding: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .card-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--text-main);
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
+        /* FORMS & CARDS */
+        .card { background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border); padding: 2rem; margin-bottom: 2rem; }
+        .card-title { font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin-bottom: 1.5rem; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem; }
         .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        label { font-size: 0.875rem; font-weight: 500; color: var(--text-muted); }
+        
+        input, select { padding: 0.75rem; background-color: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; color: var(--text-main); width: 100%; transition: all 0.2s; }
+        input:focus, select:focus { outline: none; border-color: var(--primary); }
+        ::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.6; cursor: pointer; }
 
-        label {
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--text-main);
-        }
+        .button-group { display: flex; gap: 1rem; }
+        button { padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; flex: 1; transition: 0.2s; }
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+        .btn-secondary { background-color: transparent; border: 1px solid var(--border); color: var(--text-muted); }
+        .btn-secondary:hover { background-color: var(--bg-input); color: var(--text-main); }
 
-        input, select {
-            padding: 0.75rem;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 1rem;
-            font-family: inherit;
-            transition: all 0.2s;
-            background-color: #f8fafc;
-        }
+        /* TABLE */
+        .filter-wrapper { background: var(--bg-input); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid var(--border); }
+        .monthly-highlight { font-weight: 700; color: var(--success); font-size: 1.1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+        .table-responsive { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { padding: 1rem; background-color: rgba(0,0,0,0.2); font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; }
+        td { padding: 1rem; border-top: 1px solid var(--border); color: var(--text-main); font-size: 0.95rem; }
+        tr:hover td { background-color: rgba(255,255,255,0.03); }
+        
+        .platform-tag { padding: 0.25rem 0.75rem; border-radius: 99px; font-size: 0.75rem; font-weight: 600; background-color: var(--badge-bg); color: var(--badge-text); }
+        .price-tag { font-family: monospace; font-weight: 700; color: var(--success); }
+        .btn-delete { background-color: rgba(239, 68, 68, 0.15); color: var(--danger); padding: 0.4rem 0.8rem; font-size: 0.8rem; flex: none; width: auto; }
+        .btn-delete:hover { background-color: rgba(239, 68, 68, 0.25); }
+        .empty-state { padding: 3rem; text-align: center; color: var(--text-muted); }
 
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-            background-color: #fff;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 1rem;
-        }
-
-        button {
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            cursor: pointer;
-            border: none;
-            transition: all 0.2s;
-            flex: 1;
-        }
-
-        .btn-primary {
-            background-color: var(--primary);
-            color: white;
-        }
-        .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
-
-        .btn-secondary {
-            background-color: #f1f5f9;
-            color: var(--text-muted);
-        }
-        .btn-secondary:hover { background-color: #e2e8f0; color: var(--text-main); }
-
-        /* TABLEAU & FILTRES */
-        .filter-wrapper {
-            background: #f8fafc;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            border: 1px solid var(--border);
-        }
-
-        .monthly-highlight {
-            font-weight: 700;
-            color: var(--primary);
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .monthly-highlight::before {
-            content: '';
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background: var(--success);
-            border-radius: 50%;
-        }
-
-        .table-responsive {
-            overflow-x: auto;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-            font-size: 0.95rem;
-        }
-
-        thead { background-color: #f8fafc; }
-
-        th {
-            padding: 1rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.05em;
-        }
-
-        td {
-            padding: 1rem;
-            border-top: 1px solid var(--border);
-            color: var(--text-main);
-        }
-
-        tr:hover td { background-color: #f8fafc; }
-
-        .platform-tag {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            background-color: #eff6ff;
-            color: var(--primary);
-        }
-
-        .price-tag {
-            font-family: 'Courier New', monospace;
-            font-weight: 700;
-        }
-
-        .btn-delete {
-            background-color: #fee2e2;
-            color: var(--danger);
-            padding: 0.4rem 0.8rem;
-            font-size: 0.8rem;
-            flex: none;
-            width: auto;
-        }
-        .btn-delete:hover { background-color: #fecaca; }
-
-        .empty-state {
-            padding: 3rem;
-            text-align: center;
-            color: var(--text-muted);
-        }
-
-        /* MEDIA QUERIES MOBILE */
-        @media (max-width: 640px) {
-            h1 { font-size: 1.5rem; }
-            .filter-wrapper { align-items: stretch; }
-            .form-grid { grid-template-columns: 1fr; }
-            th, td { padding: 0.75rem; }
-        }
+        @media (max-width: 640px) { h1 { font-size: 1.5rem; } .form-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
-
     <div class="container">
         <header>
             <h1>📈 Suivi Ventes & URSSAF</h1>
-            <p class="subtitle">Gérez vos achats/reventes simplement.</p>
+            <p class="subtitle">Thème Obsidian Slate</p>
         </header>
 
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-label">Chiffre d'Affaires Total</div>
+                <div class="stat-label">Chiffre d'Affaires</div>
                 <div class="stat-value money" id="totalRevenue">0.00€</div>
-                <div class="stat-subtext" id="avgPrice">Cumul global</div>
+                <div class="stat-subtext" id="avgPrice">Total global</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Volume de ventes</div>
+                <div class="stat-label">Ventes</div>
                 <div class="stat-value" id="totalCount">0</div>
                 <div class="stat-subtext" id="monthText">Articles vendus</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Meilleure Plateforme</div>
+                <div class="stat-label">Top Plateforme</div>
                 <div class="stat-value" id="topPlatform">-</div>
                 <div class="stat-subtext" id="topPlatformCount">0 ventes</div>
             </div>
         </div>
 
         <div class="card">
-            <div class="section-header">
-                <div class="card-title">Nouvelle Vente</div>
-            </div>
+            <div class="card-title">➕ Nouvelle Vente</div>
             <form id="salesForm">
                 <div class="form-grid">
+                    <div class="form-group"><label>Date</label><input type="date" id="date" required></div>
+                    <div class="form-group"><label>Produit</label><input type="text" id="product" placeholder="Ex: Jean Levi's..." required></div>
+                    <div class="form-group"><label>Prix (€)</label><input type="number" id="price" placeholder="0.00" step="0.01" min="0.01" required></div>
                     <div class="form-group">
-                        <label for="date">Date de vente</label>
-                        <input type="date" id="date" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="product">Produit vendu</label>
-                        <input type="text" id="product" placeholder="Ex: T-shirt Vintage..." required>
-                    </div>
-                    <div class="form-group">
-                        <label for="price">Prix de vente (€)</label>
-                        <input type="number" id="price" placeholder="0.00" step="0.01" min="0.01" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="platform">Plateforme</label>
+                        <label>Plateforme</label>
                         <select id="platform" required>
                             <option value="">Choisir...</option>
                             <option value="Vinted">Vinted</option>
@@ -346,28 +122,20 @@
                 </div>
                 <div class="button-group">
                     <button type="reset" class="btn-secondary">Réinitialiser</button>
-                    <button type="submit" class="btn-primary">Ajouter la vente</button>
+                    <button type="submit" class="btn-primary">Enregistrer</button>
                 </div>
             </form>
         </div>
 
         <div class="card">
-            <div class="section-header">
-                <div class="card-title">Historique & Déclaration</div>
-            </div>
-            
+            <div class="card-title">📋 Historique & Déclaration</div>
             <div class="filter-wrapper">
                 <div class="form-group">
-                    <label for="monthFilter">Filtrer par mois (pour déclaration URSSAF)</label>
-                    <select id="monthFilter">
-                        <option value="">Tout l'historique</option>
-                    </select>
+                    <label>Filtrer par mois (URSSAF)</label>
+                    <select id="monthFilter"><option value="">Tout l'historique</option></select>
                 </div>
-                <div id="monthlyRevenue" class="monthly-highlight">
-                    Chiffre d'affaires affiché : 0.00€
-                </div>
+                <div id="monthlyRevenue" class="monthly-highlight">Sélectionnez un mois.</div>
             </div>
-
             <div class="table-responsive" id="tableContainer">
                 <div class="empty-state">Chargement...</div>
             </div>
@@ -377,196 +145,111 @@
     <script>
         const STORAGE_KEY = 'SuiviVentesData';
 
-        // Charger les données
         function loadData() {
-            try {
-                const data = localStorage.getItem(STORAGE_KEY);
-                return data ? JSON.parse(data) : [];
-            } catch (error) {
-                console.error('Erreur chargement:', error);
-                return [];
-            }
+            try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; }
         }
 
-        // Sauvegarder les données
         function saveData(sales) {
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(sales));
-            } catch (error) {
-                alert('Erreur de sauvegarde. Vérifiez votre stockage.');
-            }
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(sales)); } catch { alert('Erreur sauvegarde'); }
         }
 
-        // Ajouter une vente
         document.getElementById('salesForm').addEventListener('submit', function(e) {
             e.preventDefault();
-
             const dateInput = document.getElementById('date').value;
             const productInput = document.getElementById('product').value;
-            const priceInput = document.getElementById('price').value;
+            const price = parseFloat(document.getElementById('price').value);
             const platformInput = document.getElementById('platform').value;
 
-            if (!dateInput || !productInput || !priceInput || !platformInput) {
-                alert('Tous les champs sont obligatoires!');
-                return;
-            }
-
-            const price = parseFloat(priceInput);
-            if (isNaN(price) || price <= 0) {
-                alert('Prix invalide');
-                return;
-            }
-
-            const newSale = {
-                id: Date.now(),
-                date: dateInput,
-                product: productInput.trim(),
-                price: price,
-                platform: platformInput
-            };
-
             const sales = loadData();
-            sales.push(newSale);
+            sales.push({ id: Date.now(), date: dateInput, product: productInput.trim(), price: price, platform: platformInput });
             saveData(sales);
-
+            
             this.reset();
             document.getElementById('date').valueAsDate = new Date();
-
             refreshAll();
         });
 
-        // Supprimer une vente
         function deleteSale(id) {
             if (confirm('Supprimer cette vente ?')) {
-                let sales = loadData();
-                sales = sales.filter(s => s.id !== id);
-                saveData(sales);
+                saveData(loadData().filter(s => s.id !== id));
                 refreshAll();
             }
         }
 
-        // Gestion du filtre mois
         function populateMonthFilter() {
             const sales = loadData();
-            const monthSet = new Set();
-
-            sales.forEach(sale => {
-                const date = new Date(sale.date);
-                const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                monthSet.add(monthYear);
-            });
-
-            const sortedMonths = Array.from(monthSet).sort().reverse();
+            const monthSet = new Set(sales.map(s => s.date.substring(0, 7))); // Prend YYYY-MM
             const select = document.getElementById('monthFilter');
-            const currentVal = select.value;
+            const current = select.value;
             
             select.innerHTML = '<option value="">Tout l\'historique</option>';
-            
-            sortedMonths.forEach(monthYear => {
-                const [year, month] = monthYear.split('-');
-                const monthName = new Date(year, month - 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-                const option = document.createElement('option');
-                option.value = monthYear;
-                option.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
-                select.appendChild(option);
+            Array.from(monthSet).sort().reverse().forEach(ym => {
+                const [y, m] = ym.split('-');
+                const name = new Date(y, m - 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+                const opt = document.createElement('option');
+                opt.value = ym;
+                opt.textContent = name.charAt(0).toUpperCase() + name.slice(1);
+                select.appendChild(opt);
             });
-
-            if(currentVal && Array.from(select.options).some(o => o.value === currentVal)) {
-                select.value = currentVal;
-            }
+            if (current) select.value = current;
         }
 
-        // Rendu du tableau
         function renderTable() {
-            const filterMonth = document.getElementById('monthFilter').value;
+            const filter = document.getElementById('monthFilter').value;
             let sales = loadData();
-            const container = document.getElementById('tableContainer');
-
-            if (filterMonth) {
-                sales = sales.filter(sale => {
-                    const date = new Date(sale.date);
-                    const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                    return monthYear === filterMonth;
-                });
-            }
-
-            // Calcul CA filtré
-            const monthlyTotal = sales.reduce((sum, s) => sum + s.price, 0);
-            const monthlyDisplay = document.getElementById('monthlyRevenue');
             
-            if (filterMonth) {
-                const [year, month] = filterMonth.split('-');
-                const monthName = new Date(year, month - 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-                // Mise en avant pour URSSAF
-                monthlyDisplay.innerHTML = `CA à déclarer pour ${monthName}: <strong>${monthlyTotal.toFixed(2)}€</strong>`;
-                monthlyDisplay.style.color = 'var(--primary)';
+            if (filter) sales = sales.filter(s => s.date.startsWith(filter));
+
+            const total = sales.reduce((sum, s) => sum + s.price, 0);
+            const disp = document.getElementById('monthlyRevenue');
+            
+            if (filter) {
+                const [y, m] = filter.split('-');
+                const name = new Date(y, m - 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+                disp.innerHTML = `CA à déclarer pour ${name} : <strong>${total.toFixed(2)}€</strong>`;
             } else {
-                monthlyDisplay.innerHTML = `Chiffre d'affaires total affiché : <strong>${monthlyTotal.toFixed(2)}€</strong>`;
-                monthlyDisplay.style.color = 'var(--text-main)';
+                disp.innerHTML = `Chiffre d'affaires total : <strong>${total.toFixed(2)}€</strong>`;
             }
 
-            if (sales.length === 0) {
-                container.innerHTML = `<div class="empty-state">${filterMonth ? 'Aucune vente ce mois-ci.' : 'Aucune vente enregistrée.'}</div>`;
+            const container = document.getElementById('tableContainer');
+            if (!sales.length) {
+                container.innerHTML = `<div class="empty-state">${filter ? 'Rien ce mois-ci.' : 'Aucune vente.'}</div>`;
                 return;
             }
 
-            const sorted = [...sales].sort((a, b) => new Date(b.date) - new Date(a.date));
-
             let html = '<table><thead><tr><th>Date</th><th>Produit</th><th>Plateforme</th><th>Prix</th><th></th></tr></thead><tbody>';
-
-            sorted.forEach(sale => {
-                const dateObj = new Date(sale.date);
-                const formattedDate = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: '2-digit' });
-
-                html += `<tr>
-                    <td>${formattedDate}</td>
-                    <td>${sale.product}</td>
-                    <td><span class="platform-tag">${sale.platform}</span></td>
-                    <td class="price-tag">${sale.price.toFixed(2)}€</td>
-                    <td style="text-align:right;"><button class="btn-delete" onclick="deleteSale(${sale.id})">Supprimer</button></td>
-                </tr>`;
+            sales.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(s => {
+                const d = new Date(s.date).toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
+                html += `<tr><td>${d}</td><td>${s.product}</td><td><span class="platform-tag">${s.platform}</span></td><td class="price-tag">${s.price.toFixed(2)}€</td><td style="text-align:right"><button class="btn-delete" onclick="deleteSale(${s.id})">×</button></td></tr>`;
             });
-
             html += '</tbody></table>';
             container.innerHTML = html;
         }
 
         function updateStats() {
             const sales = loadData();
-            if (sales.length === 0) {
+            if (!sales.length) {
                 document.getElementById('totalRevenue').textContent = '0.00€';
                 document.getElementById('totalCount').textContent = '0';
                 document.getElementById('topPlatform').textContent = '-';
                 return;
             }
-
-            const totalRevenue = sales.reduce((sum, s) => sum + s.price, 0);
-            document.getElementById('totalRevenue').textContent = totalRevenue.toFixed(2) + '€';
+            document.getElementById('totalRevenue').textContent = sales.reduce((a,b)=>a+b.price,0).toFixed(2)+'€';
             document.getElementById('totalCount').textContent = sales.length;
-
-            const platformCount = {};
-            sales.forEach(sale => {
-                platformCount[sale.platform] = (platformCount[sale.platform] || 0) + 1;
-            });
-            const topPlatformEntry = Object.entries(platformCount).sort((a, b) => b[1] - a[1])[0];
             
-            if (topPlatformEntry) {
-                document.getElementById('topPlatform').textContent = topPlatformEntry[0];
-                document.getElementById('topPlatformCount').textContent = `${topPlatformEntry[1]} ventes`;
+            const counts = {};
+            sales.forEach(s => counts[s.platform] = (counts[s.platform] || 0) + 1);
+            const top = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
+            if(top) {
+                document.getElementById('topPlatform').textContent = top[0];
+                document.getElementById('topPlatformCount').textContent = top[1] + ' vente(s)';
             }
         }
 
-        function refreshAll() {
-            populateMonthFilter();
-            renderTable();
-            updateStats();
-        }
-
-        // Init
+        function refreshAll() { populateMonthFilter(); renderTable(); updateStats(); }
+        
         document.getElementById('date').valueAsDate = new Date();
         document.getElementById('monthFilter').addEventListener('change', renderTable);
-        
-        // Initial load
         refreshAll();
     </script>
 </body>
