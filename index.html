@@ -3,489 +3,373 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suivi Ventes</title>
+    <title>Suivi Ventes & URSSAF</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         :root {
-            --primary: #10b981;
-            --primary-light: #34d399;
-            --primary-dark: #059669;
-            --secondary: #8b5cf6;
-            --danger: #ef4444;
-            --bg: #0f172a;
-            --surface: #1e293b;
-            --surface-light: #334155;
-            --text: #f1f5f9;
-            --text-light: #cbd5e1;
-            --border: #475569;
-            --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            /* Palette de couleurs professionnelle et douce */
+            --primary: #2563eb;       /* Bleu royal moderne */
+            --primary-hover: #1d4ed8;
+            --bg-body: #f1f5f9;       /* Gris très clair apaisant */
+            --bg-card: #ffffff;       /* Blanc pur */
+            --text-main: #1e293b;     /* Gris foncé quasi noir */
+            --text-muted: #64748b;    /* Gris moyen */
+            --success: #10b981;       /* Vert succès */
+            --danger: #ef4444;        /* Rouge suppression */
+            --border: #e2e8f0;        /* Bordure subtile */
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --radius: 12px;
         }
 
-        html {
-            scroll-behavior: smooth;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, var(--bg) 0%, #1a1f3a 100%);
-            color: var(--text);
-            line-height: 1.6;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.5;
+            padding: 2rem 1rem;
             min-height: 100vh;
-            padding: 20px;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1000px;
             margin: 0 auto;
         }
 
-        /* HEADER */
+        /* HEADER SIMPLIFIÉ */
         header {
+            margin-bottom: 2rem;
             text-align: center;
-            margin-bottom: 50px;
-            animation: slideDown 0.6s ease;
         }
 
         h1 {
-            font-size: 3em;
-            color: var(--primary);
-            margin-bottom: 5px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -0.025em;
+            margin-bottom: 0.5rem;
         }
 
         .subtitle {
-            color: var(--text-light);
-            font-size: 1.05em;
-            font-weight: 400;
+            color: var(--text-muted);
+            font-size: 1rem;
         }
 
-        /* STATS GRID */
+        /* CARTES DE STATISTIQUES */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 24px;
-            margin-bottom: 50px;
-            animation: fadeIn 0.8s ease 0.2s both;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
         }
 
         .stat-card {
-            background: linear-gradient(135deg, var(--surface) 0%, var(--surface-light) 100%);
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: var(--shadow);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            border-left: 5px solid var(--primary);
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(16, 185, 129, 0.15);
-            border: 1px solid rgba(16, 185, 129, 0.5);
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
         }
 
         .stat-label {
-            font-size: 0.85em;
-            color: var(--text-light);
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: 12px;
+            font-size: 0.875rem;
             font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
         }
 
         .stat-value {
-            font-size: 2.5em;
+            font-size: 2rem;
             font-weight: 700;
-            color: var(--primary);
-            line-height: 1;
+            color: var(--text-main);
+            letter-spacing: -0.05em;
         }
+
+        .stat-value.money { color: var(--primary); }
 
         .stat-subtext {
-            font-size: 0.9em;
-            color: var(--text-light);
-            margin-top: 8px;
-            font-weight: 400;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: auto;
+            padding-top: 0.5rem;
         }
 
-        /* FORM SECTION */
-        .form-section {
-            background: linear-gradient(135deg, var(--surface) 0%, var(--surface-light) 100%);
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: var(--shadow);
-            margin-bottom: 50px;
-            animation: fadeIn 0.8s ease 0.4s both;
-            border: 1px solid rgba(139, 92, 246, 0.2);
-            backdrop-filter: blur(10px);
+        /* SECTION FORMULAIRE */
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
+            padding: 2rem;
+            margin-bottom: 2rem;
         }
 
-        .form-title {
-            font-size: 1.8em;
-            color: var(--primary);
-            margin-bottom: 30px;
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
             font-weight: 700;
+            color: var(--text-main);
         }
 
         .form-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
         }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
+        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
 
         label {
-            font-weight: 600;
-            color: var(--primary);
-            margin-bottom: 10px;
-            font-size: 0.95em;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-main);
         }
 
         input, select {
-            padding: 14px 16px;
-            border: 2px solid var(--border);
-            border-radius: 10px;
-            font-size: 1em;
-            transition: all 0.3s ease;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
             font-family: inherit;
-            background: rgba(15, 23, 42, 0.5);
-            color: var(--text);
+            transition: all 0.2s;
+            background-color: #f8fafc;
         }
 
         input:focus, select:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
-            background: rgba(15, 23, 42, 0.8);
-        }
-
-        input::placeholder {
-            color: rgba(203, 213, 225, 0.5);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            background-color: #fff;
         }
 
         .button-group {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 16px;
+            display: flex;
+            gap: 1rem;
         }
 
         button {
-            padding: 14px 28px;
-            border: none;
-            border-radius: 10px;
-            font-size: 1em;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
             font-weight: 600;
+            font-size: 0.95rem;
             cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
+            border: none;
+            transition: all 0.2s;
+            flex: 1;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            color: #0f172a;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 30px rgba(16, 185, 129, 0.3);
-        }
-
-        .btn-secondary {
-            background: var(--secondary);
+            background-color: var(--primary);
             color: white;
         }
+        .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
 
-        .btn-secondary:hover {
-            background: #9d6dd4;
-            transform: translateY(-3px);
+        .btn-secondary {
+            background-color: #f1f5f9;
+            color: var(--text-muted);
         }
+        .btn-secondary:hover { background-color: #e2e8f0; color: var(--text-main); }
 
-        /* TABLE SECTION */
-        .table-section {
-            background: linear-gradient(135deg, var(--surface) 0%, var(--surface-light) 100%);
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: var(--shadow);
-            animation: fadeIn 0.8s ease 0.6s both;
-            overflow-x: auto;
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            backdrop-filter: blur(10px);
-        }
-
-        .table-title {
-            font-size: 1.8em;
-            color: var(--primary);
-            margin-bottom: 30px;
-            font-weight: 700;
-        }
-
-        .filter-section {
-            margin-bottom: 25px;
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .filter-label {
-            font-weight: 600;
-            color: var(--primary);
-            margin: 0;
-            font-size: 0.95em;
-        }
-
-        .month-filter {
-            padding: 10px 14px;
-            border: 2px solid var(--border);
-            border-radius: 10px;
-            font-size: 0.95em;
-            background: rgba(15, 23, 42, 0.5);
-            color: var(--text);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .month-filter:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
-        }
-
-        .monthly-revenue {
-            font-size: 1.1em;
-            font-weight: 600;
-            color: var(--primary);
-            padding: 10px 16px;
-            background: rgba(16, 185, 129, 0.1);
+        /* TABLEAU & FILTRES */
+        .filter-wrapper {
+            background: #f8fafc;
+            padding: 1rem;
             border-radius: 8px;
-            border-left: 4px solid var(--primary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            border: 1px solid var(--border);
+        }
+
+        .monthly-highlight {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .monthly-highlight::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid var(--border);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
+            text-align: left;
+            font-size: 0.95rem;
         }
 
-        thead {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-        }
+        thead { background-color: #f8fafc; }
 
         th {
-            padding: 18px 16px;
-            text-align: left;
+            padding: 1rem;
             font-weight: 600;
+            color: var(--text-muted);
             text-transform: uppercase;
-            font-size: 0.8em;
-            letter-spacing: 1px;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
         }
 
         td {
-            padding: 16px;
-            border-bottom: 1px solid rgba(71, 85, 105, 0.3);
+            padding: 1rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-main);
         }
 
-        tbody tr {
-            transition: background-color 0.2s ease;
-        }
+        tr:hover td { background-color: #f8fafc; }
 
-        tbody tr:hover {
-            background-color: rgba(16, 185, 129, 0.05);
-        }
-
-        .price-cell {
+        .platform-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
             font-weight: 600;
+            background-color: #eff6ff;
             color: var(--primary);
         }
 
-        .platform-badge {
-            display: inline-block;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            font-weight: 500;
-            background: rgba(139, 92, 246, 0.2);
-            color: #c4b5fd;
-            border: 1px solid rgba(139, 92, 246, 0.5);
-            white-space: nowrap;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text-light);
-        }
-
-        .empty-state-icon {
-            font-size: 4em;
-            margin-bottom: 16px;
-        }
-
-        .empty-state-text {
-            font-size: 1.1em;
+        .price-tag {
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
         }
 
         .btn-delete {
-            background: var(--danger);
-            color: white;
-            padding: 8px 14px;
-            font-size: 0.85em;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: none;
-            font-weight: 600;
+            background-color: #fee2e2;
+            color: var(--danger);
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            flex: none;
+            width: auto;
+        }
+        .btn-delete:hover { background-color: #fecaca; }
+
+        .empty-state {
+            padding: 3rem;
+            text-align: center;
+            color: var(--text-muted);
         }
 
-        .btn-delete:hover {
-            background: #dc2626;
-            transform: scale(1.05);
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(15px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 2.2em;
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .form-section,
-            .table-section {
-                padding: 24px;
-            }
-
-            table {
-                font-size: 0.9em;
-            }
-
-            th, td {
-                padding: 12px;
-            }
-
-            .filter-section {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .monthly-revenue {
-                width: 100%;
-            }
+        /* MEDIA QUERIES MOBILE */
+        @media (max-width: 640px) {
+            h1 { font-size: 1.5rem; }
+            .filter-wrapper { align-items: stretch; }
+            .form-grid { grid-template-columns: 1fr; }
+            th, td { padding: 0.75rem; }
         }
     </style>
 </head>
 <body>
+
     <div class="container">
         <header>
-            <h1>✨ Suivi Ventes</h1>
+            <h1>📈 Suivi Ventes & URSSAF</h1>
+            <p class="subtitle">Gérez vos achats/reventes simplement.</p>
         </header>
 
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-label">💰 Chiffre d'affaires</div>
-                <div class="stat-value" id="totalRevenue">0.00€</div>
-                <div class="stat-subtext" id="avgPrice">Aucune vente</div>
+                <div class="stat-label">Chiffre d'Affaires Total</div>
+                <div class="stat-value money" id="totalRevenue">0.00€</div>
+                <div class="stat-subtext" id="avgPrice">Cumul global</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">📊 Nombre de ventes</div>
+                <div class="stat-label">Volume de ventes</div>
                 <div class="stat-value" id="totalCount">0</div>
-                <div class="stat-subtext" id="monthText">Ce mois</div>
+                <div class="stat-subtext" id="monthText">Articles vendus</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">📈 Plateforme top</div>
+                <div class="stat-label">Meilleure Plateforme</div>
                 <div class="stat-value" id="topPlatform">-</div>
                 <div class="stat-subtext" id="topPlatformCount">0 ventes</div>
             </div>
         </div>
 
-        <div class="form-section">
-            <div class="form-title">➕ Ajouter une vente</div>
+        <div class="card">
+            <div class="section-header">
+                <div class="card-title">Nouvelle Vente</div>
+            </div>
             <form id="salesForm">
                 <div class="form-grid">
                     <div class="form-group">
-                        <label for="date">Date *</label>
+                        <label for="date">Date de vente</label>
                         <input type="date" id="date" required>
                     </div>
                     <div class="form-group">
-                        <label for="product">Produit *</label>
-                        <input type="text" id="product" placeholder="Ex: Bracelet en argent..." required>
+                        <label for="product">Produit vendu</label>
+                        <input type="text" id="product" placeholder="Ex: T-shirt Vintage..." required>
                     </div>
                     <div class="form-group">
-                        <label for="price">Prix (€) *</label>
+                        <label for="price">Prix de vente (€)</label>
                         <input type="number" id="price" placeholder="0.00" step="0.01" min="0.01" required>
                     </div>
                     <div class="form-group">
-                        <label for="platform">Plateforme *</label>
+                        <label for="platform">Plateforme</label>
                         <select id="platform" required>
-                            <option value="">Sélectionner...</option>
+                            <option value="">Choisir...</option>
                             <option value="Vinted">Vinted</option>
                             <option value="LeBonCoin">LeBonCoin</option>
                             <option value="eBay">eBay</option>
+                            <option value="Vestiaire Co">Vestiaire Co.</option>
+                            <option value="Autre">Autre</option>
                         </select>
                     </div>
                 </div>
                 <div class="button-group">
-                    <button type="submit" class="btn-primary">✓ Enregistrer</button>
-                    <button type="reset" class="btn-secondary">↺ Réinitialiser</button>
+                    <button type="reset" class="btn-secondary">Réinitialiser</button>
+                    <button type="submit" class="btn-primary">Ajouter la vente</button>
                 </div>
             </form>
         </div>
 
-        <div class="table-section">
-            <div class="table-title">📋 Historique des ventes</div>
-            <div class="filter-section">
-                <label for="monthFilter" class="filter-label">Filtrer par mois:</label>
-                <select id="monthFilter" class="month-filter">
-                    <option value="">Afficher tout</option>
-                </select>
-                <div id="monthlyRevenue" class="monthly-revenue">
-                    Chiffre d'affaires: 0.00€
+        <div class="card">
+            <div class="section-header">
+                <div class="card-title">Historique & Déclaration</div>
+            </div>
+            
+            <div class="filter-wrapper">
+                <div class="form-group">
+                    <label for="monthFilter">Filtrer par mois (pour déclaration URSSAF)</label>
+                    <select id="monthFilter">
+                        <option value="">Tout l'historique</option>
+                    </select>
+                </div>
+                <div id="monthlyRevenue" class="monthly-highlight">
+                    Chiffre d'affaires affiché : 0.00€
                 </div>
             </div>
-            <div id="tableContainer">
-                <div class="empty-state">
-                    <div class="empty-state-icon">📭</div>
-                    <div class="empty-state-text">Aucune vente enregistrée. Commencez par en ajouter une!</div>
-                </div>
+
+            <div class="table-responsive" id="tableContainer">
+                <div class="empty-state">Chargement...</div>
             </div>
         </div>
     </div>
@@ -493,24 +377,22 @@
     <script>
         const STORAGE_KEY = 'SuiviVentesData';
 
-        // Charger les données depuis localStorage
+        // Charger les données
         function loadData() {
             try {
                 const data = localStorage.getItem(STORAGE_KEY);
                 return data ? JSON.parse(data) : [];
             } catch (error) {
-                console.error('❌ Erreur lors du chargement:', error);
+                console.error('Erreur chargement:', error);
                 return [];
             }
         }
 
-        // Sauvegarder les données dans localStorage
+        // Sauvegarder les données
         function saveData(sales) {
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(sales));
-                console.log('✅ Données sauvegardées');
             } catch (error) {
-                console.error('❌ Erreur lors de la sauvegarde:', error);
                 alert('Erreur de sauvegarde. Vérifiez votre stockage.');
             }
         }
@@ -524,15 +406,14 @@
             const priceInput = document.getElementById('price').value;
             const platformInput = document.getElementById('platform').value;
 
-            // Validation stricte
             if (!dateInput || !productInput || !priceInput || !platformInput) {
-                alert('⚠️ Tous les champs sont obligatoires!');
+                alert('Tous les champs sont obligatoires!');
                 return;
             }
 
             const price = parseFloat(priceInput);
             if (isNaN(price) || price <= 0) {
-                alert('⚠️ Le prix doit être un nombre positif!');
+                alert('Prix invalide');
                 return;
             }
 
@@ -548,51 +429,38 @@
             sales.push(newSale);
             saveData(sales);
 
-            console.log('✅ Vente enregistrée:', newSale);
-            console.log('📊 Toutes les ventes:', sales);
-
-            // Réinitialiser le formulaire
             this.reset();
             document.getElementById('date').valueAsDate = new Date();
 
-            // Actualiser l'affichage
-            populateMonthFilter();
-            renderTable();
-            updateStats();
-
-            // Message de confirmation
-            alert('✅ Vente enregistrée avec succès!');
+            refreshAll();
         });
 
         // Supprimer une vente
         function deleteSale(id) {
-            if (confirm('Êtes-vous sûr de vouloir supprimer cette vente?')) {
+            if (confirm('Supprimer cette vente ?')) {
                 let sales = loadData();
                 sales = sales.filter(s => s.id !== id);
                 saveData(sales);
-                populateMonthFilter();
-                renderTable();
-                updateStats();
-                console.log('✅ Vente supprimée');
+                refreshAll();
             }
         }
 
-        // Remplir le dropdown des mois
+        // Gestion du filtre mois
         function populateMonthFilter() {
             const sales = loadData();
             const monthSet = new Set();
 
             sales.forEach(sale => {
-                const date = new Date(sale.date + 'T00:00:00');
+                const date = new Date(sale.date);
                 const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
                 monthSet.add(monthYear);
             });
 
             const sortedMonths = Array.from(monthSet).sort().reverse();
             const select = document.getElementById('monthFilter');
+            const currentVal = select.value;
             
-            // Garder l'option "Afficher tout"
-            select.innerHTML = '<option value="">Afficher tout</option>';
+            select.innerHTML = '<option value="">Tout l\'historique</option>';
             
             sortedMonths.forEach(monthYear => {
                 const [year, month] = monthYear.split('-');
@@ -602,128 +470,104 @@
                 option.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
                 select.appendChild(option);
             });
+
+            if(currentVal && Array.from(select.options).some(o => o.value === currentVal)) {
+                select.value = currentVal;
+            }
         }
 
-        // Afficher le tableau avec filtre optionnel
-        function renderTable(filterMonth = '') {
+        // Rendu du tableau
+        function renderTable() {
+            const filterMonth = document.getElementById('monthFilter').value;
             let sales = loadData();
             const container = document.getElementById('tableContainer');
 
-            // Filtrer par mois si sélectionné
             if (filterMonth) {
                 sales = sales.filter(sale => {
-                    const date = new Date(sale.date + 'T00:00:00');
+                    const date = new Date(sale.date);
                     const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
                     return monthYear === filterMonth;
                 });
             }
 
-            // Calculer et afficher le chiffre d'affaires du mois filtré
+            // Calcul CA filtré
             const monthlyTotal = sales.reduce((sum, s) => sum + s.price, 0);
             const monthlyDisplay = document.getElementById('monthlyRevenue');
             
             if (filterMonth) {
                 const [year, month] = filterMonth.split('-');
                 const monthName = new Date(year, month - 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-                monthlyDisplay.textContent = `Chiffre d'affaires ${monthName.charAt(0).toUpperCase() + monthName.slice(1)}: ${monthlyTotal.toFixed(2)}€`;
+                // Mise en avant pour URSSAF
+                monthlyDisplay.innerHTML = `CA à déclarer pour ${monthName}: <strong>${monthlyTotal.toFixed(2)}€</strong>`;
+                monthlyDisplay.style.color = 'var(--primary)';
             } else {
-                // Quand "Afficher tout", afficher le CA total de TOUS les mois
-                const allSales = loadData();
-                const totalAllSales = allSales.reduce((sum, s) => sum + s.price, 0);
-                monthlyDisplay.textContent = `Chiffre d'affaires total: ${totalAllSales.toFixed(2)}€`;
+                monthlyDisplay.innerHTML = `Chiffre d'affaires total affiché : <strong>${monthlyTotal.toFixed(2)}€</strong>`;
+                monthlyDisplay.style.color = 'var(--text-main)';
             }
 
             if (sales.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📭</div>
-                        <div class="empty-state-text">${filterMonth ? 'Aucune vente ce mois-ci.' : 'Aucune vente enregistrée. Commencez par en ajouter une!'}</div>
-                    </div>
-                `;
+                container.innerHTML = `<div class="empty-state">${filterMonth ? 'Aucune vente ce mois-ci.' : 'Aucune vente enregistrée.'}</div>`;
                 return;
             }
 
-            // Trier par date décroissante
             const sorted = [...sales].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-            let html = '<table><thead><tr>';
-            html += '<th>Date</th>';
-            html += '<th>Produit</th>';
-            html += '<th>Prix</th>';
-            html += '<th>Plateforme</th>';
-            html += '<th>Action</th>';
-            html += '</tr></thead><tbody>';
+            let html = '<table><thead><tr><th>Date</th><th>Produit</th><th>Plateforme</th><th>Prix</th><th></th></tr></thead><tbody>';
 
             sorted.forEach(sale => {
-                const dateObj = new Date(sale.date + 'T00:00:00');
-                const formattedDate = dateObj.toLocaleDateString('fr-FR', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric'
-                });
+                const dateObj = new Date(sale.date);
+                const formattedDate = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: '2-digit' });
 
-                html += '<tr>';
-                html += `<td>${formattedDate}</td>`;
-                html += `<td>${sale.product}</td>`;
-                html += `<td class="price-cell">${sale.price.toFixed(2)}€</td>`;
-                html += `<td><span class="platform-badge">${sale.platform}</span></td>`;
-                html += `<td><button class="btn-delete" onclick="deleteSale(${sale.id})">🗑 Supprimer</button></td>`;
-                html += '</tr>';
+                html += `<tr>
+                    <td>${formattedDate}</td>
+                    <td>${sale.product}</td>
+                    <td><span class="platform-tag">${sale.platform}</span></td>
+                    <td class="price-tag">${sale.price.toFixed(2)}€</td>
+                    <td style="text-align:right;"><button class="btn-delete" onclick="deleteSale(${sale.id})">Supprimer</button></td>
+                </tr>`;
             });
 
             html += '</tbody></table>';
             container.innerHTML = html;
         }
 
-        // Mettre à jour les statistiques
         function updateStats() {
             const sales = loadData();
-
             if (sales.length === 0) {
                 document.getElementById('totalRevenue').textContent = '0.00€';
                 document.getElementById('totalCount').textContent = '0';
                 document.getElementById('topPlatform').textContent = '-';
-                document.getElementById('avgPrice').textContent = 'Aucune vente';
-                document.getElementById('monthText').textContent = 'Ce mois';
-                document.getElementById('topPlatformCount').textContent = '0 ventes';
                 return;
             }
 
-            // Chiffre d'affaires total
             const totalRevenue = sales.reduce((sum, s) => sum + s.price, 0);
             document.getElementById('totalRevenue').textContent = totalRevenue.toFixed(2) + '€';
-
-            // Nombre de ventes
             document.getElementById('totalCount').textContent = sales.length;
-            document.getElementById('monthText').textContent = `${sales.length} articles vendus`;
-            document.getElementById('avgPrice').textContent = `Total: ${totalRevenue.toFixed(2)}€`;
 
-            // Plateforme la plus utilisée
             const platformCount = {};
             sales.forEach(sale => {
                 platformCount[sale.platform] = (platformCount[sale.platform] || 0) + 1;
             });
-
             const topPlatformEntry = Object.entries(platformCount).sort((a, b) => b[1] - a[1])[0];
+            
             if (topPlatformEntry) {
                 document.getElementById('topPlatform').textContent = topPlatformEntry[0];
-                document.getElementById('topPlatformCount').textContent = `${topPlatformEntry[1]} ${topPlatformEntry[1] > 1 ? 'ventes' : 'vente'}`;
+                document.getElementById('topPlatformCount').textContent = `${topPlatformEntry[1]} ventes`;
             }
         }
 
-        // Initialiser la date du jour
+        function refreshAll() {
+            populateMonthFilter();
+            renderTable();
+            updateStats();
+        }
+
+        // Init
         document.getElementById('date').valueAsDate = new Date();
-
-        // Ajouter event listener pour le filtre des mois
-        document.getElementById('monthFilter').addEventListener('change', function(e) {
-            renderTable(e.target.value);
-        });
-
-        // Initialiser et charger au démarrage
-        populateMonthFilter();
-        renderTable();
-        updateStats();
-        console.log('✅ Application démarrée avec succès');
+        document.getElementById('monthFilter').addEventListener('change', renderTable);
+        
+        // Initial load
+        refreshAll();
     </script>
 </body>
 </html>
