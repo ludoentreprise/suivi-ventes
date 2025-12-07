@@ -512,10 +512,11 @@
             const monthlyTotal = sales.reduce((sum, s) => sum + s.price, 0);
             const monthlyDisplay = document.getElementById('monthlyRevenue');
             
+            // CORRECTION DE L'ESPACEMENT ICI
             if (filterMonth) {
                 const [year, month] = filterMonth.split('-');
                 const monthName = new Date(year, month - 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-                // MODIFICATION ICI : "Chiffre d'affaires à déclarer"
+                // Ajout d'un espace clair avant le <strong>
                 monthlyDisplay.innerHTML = `Chiffre d'affaires à déclarer pour ${monthName} : <strong>${monthlyTotal.toFixed(2)}€</strong>`;
             } else {
                 monthlyDisplay.innerHTML = `Chiffre d'affaires total affiché : <strong>${monthlyTotal.toFixed(2)}€</strong>`;
