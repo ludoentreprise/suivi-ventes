@@ -255,12 +255,11 @@
     <div id="toast" class="toast">Notification</div>
 
     <script type="module">
-        // Import des fonctions Firebase depuis le CDN
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // TA CONFIGURATION (Copiée de ton message)
+        // CONFIGURATION (Tes vraies clés)
         const firebaseConfig = {
             apiKey: "AIzaSyDhlCjxx0FeYOqZPbZiHD9BTYmTsl0PVCQ",
             authDomain: "suivi-ventes.firebaseapp.com",
@@ -270,28 +269,23 @@
             appId: "1:272523591744:web:8f1ca8fbdfa2858f711fa5"
         };
 
-        // Initialisation
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
         let currentUser = null;
         let salesData = [];
-        let unsubscribe = null; // Pour arrêter d'écouter la base de données quand on se déconnecte
+        let unsubscribe = null;
 
-        // --- AUTHENTIFICATION ---
-
-        // Surveiller l'état de connexion
+        // AUTH
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // Connecté
                 currentUser = user;
                 document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('app-container').style.display = 'block';
                 startListeningToSales();
                 showToast("✅ Connecté !");
             } else {
-                // Déconnecté
                 currentUser = null;
                 document.getElementById('auth-screen').style.display = 'flex';
                 document.getElementById('app-container').style.display = 'none';
@@ -299,236 +293,122 @@
             }
         });
 
-        // Fonctions globales pour les boutons HTML
         window.login = async () => {
-            const email = document.getElementById('email').value;
-            const pass = document.getElementById('password').value;
-            const errorMsg = document.getElementById('auth-error');
-            errorMsg.textContent = "";
-
-            try {
-                await signInWithEmailAndPassword(auth, email, pass);
-            } catch (error) {
-                errorMsg.textContent = "Erreur : Email ou mot de passe incorrect.";
-                console.error(error);
-            }
+            try { await signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value); }
+            catch (e) { document.getElementById('auth-error').textContent = "Erreur email/mot de passe"; }
         };
-
         window.register = async () => {
-            const email = document.getElementById('email').value;
-            const pass = document.getElementById('password').value;
-            const errorMsg = document.getElementById('auth-error');
-            errorMsg.textContent = "";
-
-            if(pass.length < 6) {
-                errorMsg.textContent = "Le mot de passe doit faire au moins 6 caractères.";
-                return;
-            }
-
-            try {
-                await createUserWithEmailAndPassword(auth, email, pass);
-                // La connexion est automatique après la création
-            } catch (error) {
-                if(error.code === 'auth/email-already-in-use') {
-                    errorMsg.textContent = "Cet email a déjà un compte. Connectez-vous.";
-                } else {
-                    errorMsg.textContent = "Erreur lors de la création du compte.";
-                    console.error(error);
-                }
-            }
+            try { await createUserWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value); }
+            catch (e) { document.getElementById('auth-error').textContent = "Erreur création compte (min 6 caractères)"; }
         };
+        window.logout = () => signOut(auth);
 
-        window.logout = () => {
-            signOut(auth);
-        };
-
-        // --- GESTION DES DONNÉES (FIRESTORE) ---
-
+        // DATA - Optimisation Listener
         function startListeningToSales() {
             if (!currentUser) return;
+            if (unsubscribe) unsubscribe(); // STOPPE L'ANCIEN LISTENER POUR ÉVITER LES DOUBLONS
 
-            // On écoute la collection "sales" SOUS l'utilisateur (chaque user a ses données)
             const q = query(collection(db, `users/${currentUser.uid}/sales`), orderBy("date", "desc"));
-
-            unsubscribe = onSnapshot(q, (snapshot) => {
+            unsubscribe = onSnapshot(q, (snap) => {
                 salesData = [];
-                snapshot.forEach((doc) => {
-                    salesData.push({ id: doc.id, ...doc.data() });
-                });
+                snap.forEach(d => salesData.push({id: d.id, ...d.data()}));
                 refreshAll();
-            }, (error) => {
-                console.error("Erreur lecture:", error);
+            }, (e) => {
+                console.error(e);
                 showToast("Erreur de connexion", false);
             });
         }
 
-        // Ajouter une vente
         document.getElementById('salesForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             if(!currentUser) return;
-
-            const dateInput = document.getElementById('date').value;
-            const productInput = document.getElementById('product').value;
-            const price = parseFloat(document.getElementById('price').value);
-            const platformInput = document.getElementById('platform').value;
-
-            if (!dateInput || !productInput || !price || !platformInput) {
-                alert('Champs obligatoires manquants'); return;
-            }
-
+            const d = document.getElementById('date').value, p = document.getElementById('product').value, pr = parseFloat(document.getElementById('price').value), pl = document.getElementById('platform').value;
             const btn = this.querySelector('button[type="submit"]');
-            const originalText = btn.textContent;
-            btn.textContent = "Enregistrement...";
-            btn.disabled = true;
-
+            btn.disabled = true; btn.textContent = "Enregistrement...";
+            
             try {
-                await addDoc(collection(db, `users/${currentUser.uid}/sales`), {
-                    date: dateInput,
-                    product: productInput.trim(),
-                    price: price,
-                    platform: platformInput,
-                    createdAt: new Date()
-                });
-                
-                this.reset();
-                document.getElementById('date').valueAsDate = new Date();
-                showToast("✅ Vente sauvegardée dans le Cloud !");
-            } catch (error) {
-                console.error("Erreur ajout:", error);
-                showToast("Erreur lors de la sauvegarde", false);
-            } finally {
-                btn.textContent = originalText;
-                btn.disabled = false;
-            }
+                await addDoc(collection(db, `users/${currentUser.uid}/sales`), { date: d, product: p.trim(), price: pr, platform: pl, createdAt: new Date() });
+                this.reset(); document.getElementById('date').valueAsDate = new Date();
+                showToast("✅ Vente enregistrée !");
+            } catch(e) { showToast("Erreur sauvegarde", false); } 
+            finally { btn.disabled = false; btn.textContent = "ENREGISTRER LA VENTE"; }
         });
 
-        // Supprimer une vente
         window.deleteSale = async (id) => {
             if (confirm('Supprimer cette vente ?')) {
-                try {
-                    await deleteDoc(doc(db, `users/${currentUser.uid}/sales`, id));
-                    showToast("🗑️ Vente supprimée");
-                } catch (error) {
-                    console.error("Erreur suppression:", error);
-                    showToast("Impossible de supprimer", false);
-                }
+                try { await deleteDoc(doc(db, `users/${currentUser.uid}/sales`, id)); showToast("🗑️ Vente supprimée"); }
+                catch(e) { showToast("Erreur suppression", false); }
             }
         };
 
-        // --- UI & AFFICHAGE (IDENTIQUE À AVANT) ---
-
-        function showToast(message, isSuccess = true) {
-            const toast = document.getElementById("toast");
-            toast.textContent = message;
-            toast.style.borderColor = isSuccess ? "var(--success)" : "var(--danger)";
-            toast.className = "toast show";
-            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
-        }
-
-        function populateMonthFilter() {
-            const monthSet = new Set();
-            salesData.forEach(sale => {
-                const date = new Date(sale.date);
-                const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                monthSet.add(monthYear);
-            });
-
-            const sortedMonths = Array.from(monthSet).sort().reverse();
-            const select = document.getElementById('monthFilter');
-            const currentVal = select.value;
-            
-            select.innerHTML = '<option value="">Tout l\'historique</option>';
-            sortedMonths.forEach(monthYear => {
-                const [year, month] = monthYear.split('-');
-                const monthName = new Date(year, month - 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-                const option = document.createElement('option');
-                option.value = monthYear;
-                option.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
-                select.appendChild(option);
-            });
-
-            if(currentVal && Array.from(select.options).some(o => o.value === currentVal)) {
-                select.value = currentVal;
-            }
-        }
-
-        function renderTable() {
-            const filterMonth = document.getElementById('monthFilter').value;
-            let filteredSales = salesData;
-            const container = document.getElementById('tableContainer');
-
-            if (filterMonth) {
-                filteredSales = salesData.filter(sale => sale.date.startsWith(filterMonth));
-            }
-
-            // Calculs
-            const total = filteredSales.reduce((sum, s) => sum + s.price, 0);
-            const disp = document.getElementById('monthlyRevenue');
-            
-            if (filterMonth) {
-                const [y, m] = filterMonth.split('-');
-                const name = new Date(y, m - 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-                // Note l'espace explicite avant le :
-                disp.innerHTML = `Chiffre d'affaires à déclarer pour ${name} : <strong>${total.toFixed(2)}€</strong>`;
-            } else {
-                disp.innerHTML = `Chiffre d'affaires total affiché : <strong>${total.toFixed(2)}€</strong>`;
-            }
-
-            if (filteredSales.length === 0) {
-                container.innerHTML = `<div class="empty-state">${filterMonth ? 'Aucune vente ce mois-ci.' : 'Aucune vente enregistrée.'}</div>`;
-                return;
-            }
-
-            // Le tri est déjà fait par Firestore, mais on s'assure coté client aussi si besoin
-            filteredSales.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-            let html = '<table><thead><tr><th>Date</th><th>Produit</th><th>Plateforme</th><th>Prix</th><th></th></tr></thead><tbody>';
-            filteredSales.forEach(sale => {
-                const d = new Date(sale.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-                html += `<tr>
-                    <td>${d}</td>
-                    <td>${sale.product}</td>
-                    <td><span class="platform-tag">${sale.platform}</span></td>
-                    <td class="price-tag">${sale.price.toFixed(2)}€</td>
-                    <td style="text-align:right;"><button class="btn-delete" onclick="deleteSale('${sale.id}')">×</button></td>
-                </tr>`;
-            });
-            html += '</tbody></table>';
-            container.innerHTML = html;
-        }
-
-        function updateStats() {
-            if (salesData.length === 0) {
-                document.getElementById('totalRevenue').textContent = '0.00€';
-                document.getElementById('totalCount').textContent = '0';
-                document.getElementById('topPlatform').textContent = '-';
-                document.getElementById('topPlatformCount').textContent = '0 ventes';
-                return;
-            }
-
-            const total = salesData.reduce((sum, s) => sum + s.price, 0);
-            document.getElementById('totalRevenue').textContent = total.toFixed(2) + '€';
-            document.getElementById('totalCount').textContent = salesData.length;
-
-            const counts = {};
-            salesData.forEach(s => counts[s.platform] = (counts[s.platform] || 0) + 1);
-            const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
-            if (top) {
-                document.getElementById('topPlatform').textContent = top[0];
-                document.getElementById('topPlatformCount').textContent = `${top[1]} vente(s)`;
-            }
+        // UI
+        function showToast(msg, success=true) {
+            const t = document.getElementById("toast"); t.textContent = msg; t.style.borderColor = success ? "var(--success)" : "var(--danger)";
+            t.className = "toast show"; setTimeout(() => t.className = t.className.replace("show",""), 3000);
         }
 
         function refreshAll() {
-            populateMonthFilter();
-            renderTable();
-            updateStats();
+            // Stats
+            if(!salesData.length) {
+                document.getElementById('totalRevenue').textContent = "0.00€"; document.getElementById('totalCount').textContent = "0";
+                document.getElementById('topPlatform').textContent = "-"; document.getElementById('topPlatformCount').textContent = "0 ventes";
+            } else {
+                const total = salesData.reduce((a,b)=>a+b.price,0);
+                document.getElementById('totalRevenue').textContent = total.toFixed(2)+"€";
+                document.getElementById('totalCount').textContent = salesData.length;
+                const counts = {}; salesData.forEach(s => counts[s.platform] = (counts[s.platform]||0)+1);
+                const top = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
+                if(top) { document.getElementById('topPlatform').textContent = top[0]; document.getElementById('topPlatformCount').textContent = top[1]+" vente(s)"; }
+            }
+
+            // Filtres & Tableau
+            const filter = document.getElementById('monthFilter').value;
+            const months = new Set(salesData.map(s => s.date.substring(0,7)));
+            const sel = document.getElementById('monthFilter');
+            const savedVal = sel.value;
+            sel.innerHTML = '<option value="">Tout l\'historique</option>';
+            Array.from(months).sort().reverse().forEach(m => {
+                const [y,mo] = m.split('-');
+                const name = new Date(y, mo-1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+                const opt = document.createElement('option'); opt.value = m; opt.textContent = name.charAt(0).toUpperCase() + name.slice(1); sel.appendChild(opt);
+            });
+            if(savedVal && Array.from(months).includes(savedVal)) sel.value = savedVal;
+
+            let displayData = filter ? salesData.filter(s => s.date.startsWith(filter)) : salesData;
+            
+            // Calculs totaux
+            const monthlyTotal = displayData.reduce((a,b)=>a+b.price,0);
+            const label = filter ? 
+                `Chiffre d'affaires à déclarer pour ${sel.options[sel.selectedIndex].text}` : 
+                "Chiffre d'affaires total affiché";
+            document.getElementById('monthlyRevenue').innerHTML = `${label} : <strong>${monthlyTotal.toFixed(2)}€</strong>`;
+
+            const tbody = document.getElementById('tableContainer');
+            if(!displayData.length) { tbody.innerHTML = `<div class="empty-state">${filter ? 'Aucune vente ce mois-ci.' : 'Aucune vente enregistrée.'}</div>`; return; }
+
+            // TRI OPTIMISÉ (String compare)
+            displayData.sort((a, b) => b.date.localeCompare(a.date));
+
+            let html = '<table><thead><tr><th>Date</th><th>Produit</th><th>Plateforme</th><th>Prix</th><th></th></tr></thead><tbody>';
+            displayData.forEach(s => {
+                // CORRECTION DATE (Timezone safe)
+                const [yyyy, mm, dd] = s.date.split("-");
+                const dateObj = new Date(yyyy, mm - 1, dd);
+                const dateStr = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+
+                html += `<tr>
+                    <td>${dateStr}</td>
+                    <td>${s.product}</td>
+                    <td><span class="platform-tag">${s.platform}</span></td>
+                    <td class="price-tag">${s.price.toFixed(2)}€</td>
+                    <td style="text-align:right;"><button class="btn-delete" onclick="deleteSale('${s.id}')">×</button></td>
+                </tr>`;
+            });
+            tbody.innerHTML = html + '</tbody></table>';
         }
 
-        // Init UI
         document.getElementById('date').valueAsDate = new Date();
-        document.getElementById('monthFilter').addEventListener('change', renderTable);
+        document.getElementById('monthFilter').addEventListener('change', refreshAll);
     </script>
 </body>
 </html>
- 
