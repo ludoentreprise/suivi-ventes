@@ -181,8 +181,7 @@
             <div class="stat-card">
                 <div class="stat-label">CA (Période affichée)</div>
                 <div class="stat-value money" id="totalRevenue">0.00€</div>
-                <div class="stat-subtext" id="avgPrice">Prix moyen : 0.00€</div>
-            </div>
+                </div>
             <div class="stat-card">
                 <div class="stat-label">Ventes (Période)</div>
                 <div class="stat-value" id="totalCount">0</div>
@@ -258,7 +257,6 @@
     <div id="toast" class="toast">Notification</div>
 
     <script type="module">
-        // IMPORTATIONS AJOUTÉES : limit, where
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy, limit, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -288,7 +286,7 @@
                 currentUser = user;
                 document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('app-container').style.display = 'block';
-                startListeningToSales(null); // Mode par défaut : 50 derniers
+                startListeningToSales(null); 
                 showToast("✅ Connecté !");
             } else {
                 currentUser = null;
@@ -313,12 +311,10 @@
             if (!currentUser) return;
             if (unsubscribe) unsubscribe();
 
-            // Affichage de chargement
             document.getElementById('tableContainer').innerHTML = '<div class="empty-state"><div class="loader"></div>Chargement des données...</div>';
 
             let q;
             if (monthString) {
-                // MODE MENSUEL (Filtrage Serveur)
                 const start = monthString + "-01";
                 const end = monthString + "-31";
                 q = query(
@@ -328,12 +324,10 @@
                     orderBy("date", "desc")
                 );
                 
-                // Formattage joli du mois pour le titre
                 const [y, m] = monthString.split('-');
                 const name = new Date(parseInt(y), parseInt(m)-1).toLocaleDateString('fr-FR',{month:'long', year:'numeric'});
                 currentViewLabel = "Mois de " + name.charAt(0).toUpperCase() + name.slice(1);
             } else {
-                // MODE DÉFAUT (Les 50 derniers)
                 q = query(
                     collection(db, `users/${currentUser.uid}/sales`),
                     orderBy("date", "desc"),
@@ -381,7 +375,6 @@
                 this.reset(); 
                 document.getElementById('date').valueAsDate = new Date();
                 showToast("✅ Vente enregistrée !");
-                // Note : Firestore mettra à jour la liste automatiquement grâce au listener
             } catch(e) { showToast("Erreur sauvegarde", false); } 
             finally { btn.disabled = false; btn.textContent = "Enregistrer la vente"; }
         });
@@ -410,8 +403,7 @@
             document.getElementById('totalCount').textContent = salesData.length;
             
             if (salesData.length > 0) {
-                const avg = total / salesData.length;
-                document.getElementById('avgPrice').textContent = "Prix moyen : " + avg.toFixed(2) + "€";
+                // LOGIQUE PRIX MOYEN RETIRÉE ICI
                 
                 const counts = {}; 
                 salesData.forEach(s => counts[s.platform] = (counts[s.platform]||0)+1);
@@ -421,7 +413,6 @@
                     document.getElementById('topPlatformCount').textContent = top[1]+" vente(s)";
                 }
             } else {
-                document.getElementById('avgPrice').textContent = "Prix moyen : 0.00€";
                 document.getElementById('topPlatform').textContent = "-";
                 document.getElementById('topPlatformCount').textContent = "0 ventes";
             }
@@ -436,7 +427,6 @@
                 return; 
             }
 
-            // Tri local (sécurité supplémentaire même si Firestore trie déjà)
             salesData.sort((a, b) => b.date.localeCompare(a.date));
 
             let html = '<table><thead><tr><th>Date</th><th>Produit</th><th>Plateforme</th><th>Prix</th><th></th></tr></thead><tbody>';
