@@ -34,7 +34,7 @@
             min-height: 100vh;
         }
 
-        .container { max-width: 1000px; margin: 0 auto; display: none; /* Masqué tant que pas connecté */ }
+        .container { max-width: 1000px; margin: 0 auto; display: none; }
 
         /* --- LOGIN SCREEN --- */
         #auth-screen {
@@ -162,8 +162,8 @@
                 <input type="password" id="password" placeholder="******">
             </div>
             <div class="button-group-vertical">
-                <button class="btn-primary" onclick="login()">Se connecter</button>
-                <button class="btn-secondary" onclick="register()">Créer un compte</button>
+                <button type="button" class="btn-primary" onclick="login()">Se connecter</button>
+                <button type="button" class="btn-secondary" onclick="register()">Créer un compte</button>
             </div>
             <p id="auth-error" style="color: var(--danger); margin-top: 1rem; font-size: 0.9rem;"></p>
         </div>
@@ -179,12 +179,12 @@
             <div class="stat-card">
                 <div class="stat-label">Chiffre d'Affaires</div>
                 <div class="stat-value money" id="totalRevenue">0.00€</div>
-                <div class="stat-subtext" id="avgPrice">Total global</div>
+                <div class="stat-subtext" id="avgPrice">Prix moyen : 0.00€</div>
             </div>
             <div class="stat-card">
                 <div class="stat-label">Ventes</div>
                 <div class="stat-value" id="totalCount">0</div>
-                <div class="stat-subtext" id="monthText">Articles vendus</div>
+                <div class="stat-subtext">Articles vendus</div>
             </div>
             <div class="stat-card">
                 <div class="stat-label">Top Plateforme</div>
@@ -259,7 +259,7 @@
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // CONFIGURATION (Tes vraies clés)
+        // CONFIGURATION
         const firebaseConfig = {
             apiKey: "AIzaSyDhlCjxx0FeYOqZPbZiHD9BTYmTsl0PVCQ",
             authDomain: "suivi-ventes.firebaseapp.com",
@@ -277,7 +277,7 @@
         let salesData = [];
         let unsubscribe = null;
 
-        // AUTH
+        // AUTHENTIFICATION
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
@@ -303,10 +303,10 @@
         };
         window.logout = () => signOut(auth);
 
-        // DATA - Optimisation Listener
+        // DATA - ECOUTE TEMPS RÉEL
         function startListeningToSales() {
             if (!currentUser) return;
-            if (unsubscribe) unsubscribe(); // STOPPE L'ANCIEN LISTENER POUR ÉVITER LES DOUBLONS
+            if (unsubscribe) unsubscribe();
 
             const q = query(collection(db, `users/${currentUser.uid}/sales`), orderBy("date", "desc"));
             unsubscribe = onSnapshot(q, (snap) => {
@@ -319,21 +319,42 @@
             });
         }
 
+        // ENREGISTREMENT VENTE
         document.getElementById('salesForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             if(!currentUser) return;
-            const d = document.getElementById('date').value, p = document.getElementById('product').value, pr = parseFloat(document.getElementById('price').value), pl = document.getElementById('platform').value;
+            
+            const d = document.getElementById('date').value;
+            const p = document.getElementById('product').value;
+            // OPTIMISATION : Utilisation de valueAsNumber pour garantir un type numérique
+            const pr = document.getElementById('price').valueAsNumber;
+            const pl = document.getElementById('platform').value;
+
             const btn = this.querySelector('button[type="submit"]');
-            btn.disabled = true; btn.textContent = "Enregistrement...";
+            btn.disabled = true; 
+            btn.textContent = "Enregistrement..."; 
             
             try {
-                await addDoc(collection(db, `users/${currentUser.uid}/sales`), { date: d, product: p.trim(), price: pr, platform: pl, createdAt: new Date() });
-                this.reset(); document.getElementById('date').valueAsDate = new Date();
+                await addDoc(collection(db, `users/${currentUser.uid}/sales`), { 
+                    date: d, 
+                    product: p.trim(), 
+                    price: pr, 
+                    platform: pl, 
+                    createdAt: new Date() 
+                });
+                this.reset(); 
+                document.getElementById('date').valueAsDate = new Date();
                 showToast("✅ Vente enregistrée !");
-            } catch(e) { showToast("Erreur sauvegarde", false); } 
-            finally { btn.disabled = false; btn.textContent = "ENREGISTRER LA VENTE"; }
+            } catch(e) { 
+                showToast("Erreur sauvegarde", false); 
+            } finally { 
+                btn.disabled = false; 
+                // CORRECTION VISUELLE : Maintien de la casse correcte
+                btn.textContent = "Enregistrer la vente"; 
+            }
         });
 
+        // SUPPRESSION
         window.deleteSale = async (id) => {
             if (confirm('Supprimer cette vente ?')) {
                 try { await deleteDoc(doc(db, `users/${currentUser.uid}/sales`, id)); showToast("🗑️ Vente supprimée"); }
@@ -341,59 +362,76 @@
             }
         };
 
-        // UI
+        // UI & HELPERS
         function showToast(msg, success=true) {
-            const t = document.getElementById("toast"); t.textContent = msg; t.style.borderColor = success ? "var(--success)" : "var(--danger)";
+            const t = document.getElementById("toast"); 
+            t.textContent = msg; t.style.borderColor = success ? "var(--success)" : "var(--danger)";
             t.className = "toast show"; setTimeout(() => t.className = t.className.replace("show",""), 3000);
         }
 
         function refreshAll() {
-            // Stats
+            // 1. STATS GLOBALES
             if(!salesData.length) {
-                document.getElementById('totalRevenue').textContent = "0.00€"; document.getElementById('totalCount').textContent = "0";
-                document.getElementById('topPlatform').textContent = "-"; document.getElementById('topPlatformCount').textContent = "0 ventes";
+                document.getElementById('totalRevenue').textContent = "0.00€";
+                document.getElementById('avgPrice').textContent = "Prix moyen : 0.00€";
+                document.getElementById('totalCount').textContent = "0";
+                document.getElementById('topPlatform').textContent = "-";
+                document.getElementById('topPlatformCount').textContent = "0 ventes";
             } else {
                 const total = salesData.reduce((a,b)=>a+b.price,0);
+                const avg = total / salesData.length;
+
                 document.getElementById('totalRevenue').textContent = total.toFixed(2)+"€";
+                // CORRECTION CODE MORT : Mise à jour active du prix moyen
+                document.getElementById('avgPrice').textContent = "Prix moyen : " + avg.toFixed(2) + "€";
+                
                 document.getElementById('totalCount').textContent = salesData.length;
-                const counts = {}; salesData.forEach(s => counts[s.platform] = (counts[s.platform]||0)+1);
+                
+                const counts = {}; 
+                salesData.forEach(s => counts[s.platform] = (counts[s.platform]||0)+1);
                 const top = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
-                if(top) { document.getElementById('topPlatform').textContent = top[0]; document.getElementById('topPlatformCount').textContent = top[1]+" vente(s)"; }
+                if(top) { 
+                    document.getElementById('topPlatform').textContent = top[0]; 
+                    document.getElementById('topPlatformCount').textContent = top[1]+" vente(s)"; 
+                }
             }
 
-            // Filtres & Tableau
+            // 2. FILTRE MOIS
             const filter = document.getElementById('monthFilter').value;
             const months = new Set(salesData.map(s => s.date.substring(0,7)));
             const sel = document.getElementById('monthFilter');
             const savedVal = sel.value;
+            
             sel.innerHTML = '<option value="">Tout l\'historique</option>';
             Array.from(months).sort().reverse().forEach(m => {
                 const [y,mo] = m.split('-');
-                const name = new Date(y, mo-1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
-                const opt = document.createElement('option'); opt.value = m; opt.textContent = name.charAt(0).toUpperCase() + name.slice(1); sel.appendChild(opt);
+                // SECURITÉ TYPE : Parsing explicite des entiers
+                const name = new Date(parseInt(y, 10), parseInt(mo, 10)-1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+                const opt = document.createElement('option'); opt.value = m; 
+                opt.textContent = name.charAt(0).toUpperCase() + name.slice(1); 
+                sel.appendChild(opt);
             });
             if(savedVal && Array.from(months).includes(savedVal)) sel.value = savedVal;
 
             let displayData = filter ? salesData.filter(s => s.date.startsWith(filter)) : salesData;
             
-            // Calculs totaux
+            // 3. AFFICHAGE TABLEAU & TOTAL FILTRÉ
             const monthlyTotal = displayData.reduce((a,b)=>a+b.price,0);
             const label = filter ? 
-                `Chiffre d'affaires à déclarer pour ${sel.options[sel.selectedIndex].text}` : 
+                `Chiffre d'affaires à déclarer pour ${sel.options[sel.selectedIndex]?.text || filter}` : 
                 "Chiffre d'affaires total affiché";
             document.getElementById('monthlyRevenue').innerHTML = `${label} : <strong>${monthlyTotal.toFixed(2)}€</strong>`;
 
             const tbody = document.getElementById('tableContainer');
             if(!displayData.length) { tbody.innerHTML = `<div class="empty-state">${filter ? 'Aucune vente ce mois-ci.' : 'Aucune vente enregistrée.'}</div>`; return; }
 
-            // TRI OPTIMISÉ (String compare)
             displayData.sort((a, b) => b.date.localeCompare(a.date));
 
             let html = '<table><thead><tr><th>Date</th><th>Produit</th><th>Plateforme</th><th>Prix</th><th></th></tr></thead><tbody>';
             displayData.forEach(s => {
-                // CORRECTION DATE (Timezone safe)
                 const [yyyy, mm, dd] = s.date.split("-");
-                const dateObj = new Date(yyyy, mm - 1, dd);
+                // SECURITÉ DATE : Parsing explicite pour affichage correct
+                const dateObj = new Date(parseInt(yyyy, 10), parseInt(mm, 10) - 1, parseInt(dd, 10));
                 const dateStr = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 
                 html += `<tr>
