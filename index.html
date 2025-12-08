@@ -176,7 +176,7 @@
             <div class="stat-card">
                 <div class="stat-label">Chiffre d'Affaires</div>
                 <div class="stat-value money" id="totalRevenue">0.00€</div>
-                </div>
+            </div>
             <div class="stat-card">
                 <div class="stat-label">Ventes</div>
                 <div class="stat-value" id="totalCount">0</div>
@@ -299,7 +299,7 @@
         };
         window.logout = () => signOut(auth);
 
-        // DATA - CHARGEMENT COMPLET (Pour liste déroulante)
+        // DATA
         function startListeningToSales() {
             if (!currentUser) return;
             if (unsubscribe) unsubscribe();
@@ -315,14 +315,14 @@
             });
         }
 
-        // AJOUT VENTE
+        // ACTIONS
         document.getElementById('salesForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             if(!currentUser) return;
             
             const d = document.getElementById('date').value;
             const p = document.getElementById('product').value;
-            const pr = document.getElementById('price').valueAsNumber; // Sécurité type
+            const pr = document.getElementById('price').valueAsNumber;
             const pl = document.getElementById('platform').value;
 
             const btn = this.querySelector('button[type="submit"]');
@@ -346,7 +346,7 @@
             }
         };
 
-        // UI HELPERS
+        // UI
         function showToast(msg, success=true) {
             const t = document.getElementById("toast"); 
             t.textContent = msg; t.style.borderColor = success ? "var(--success)" : "var(--danger)";
@@ -354,11 +354,11 @@
         }
 
         function refreshAll() {
-            // 1. GESTION LISTE DÉROULANTE AUTOMATIQUE
+            // LISTE DÉROULANTE (Remplissage automatique)
             const filter = document.getElementById('monthFilter').value;
             const months = new Set(salesData.map(s => s.date.substring(0,7)));
             const sel = document.getElementById('monthFilter');
-            const savedVal = sel.value; // Garde la sélection active si possible
+            const savedVal = sel.value;
             
             sel.innerHTML = '<option value="">Tout l\'historique</option>';
             Array.from(months).sort().reverse().forEach(m => {
@@ -370,15 +370,14 @@
             });
             if(savedVal && Array.from(months).includes(savedVal)) sel.value = savedVal;
 
-            // 2. FILTRAGE DONNÉES
+            // FILTRAGE
             let displayData = filter ? salesData.filter(s => s.date.startsWith(filter)) : salesData;
             
-            // 3. CALCULS STATS
+            // CALCULS FIABLES
             const total = displayData.reduce((a,b)=>a+b.price,0);
             document.getElementById('totalRevenue').textContent = total.toFixed(2)+"€";
             document.getElementById('totalCount').textContent = displayData.length;
 
-            // Top Plateforme sur la vue actuelle
             if(displayData.length) {
                 const counts = {}; 
                 displayData.forEach(s => counts[s.platform] = (counts[s.platform]||0)+1);
@@ -392,13 +391,13 @@
                 document.getElementById('topPlatformCount').textContent = "0 ventes";
             }
 
-            // 4. LABEL BAS
+            // TEXTE DEMANDÉ
             const label = filter ? 
-                `CA à déclarer pour ${sel.options[sel.selectedIndex]?.text || filter}` : 
+                `Chiffre d'affaires à déclarer pour ${sel.options[sel.selectedIndex]?.text}` : 
                 "Chiffre d'affaires total affiché";
             document.getElementById('monthlyRevenue').innerHTML = `${label} : <strong>${total.toFixed(2)}€</strong>`;
 
-            // 5. TABLEAU
+            // TABLEAU
             const tbody = document.getElementById('tableContainer');
             if(!displayData.length) { tbody.innerHTML = `<div class="empty-state">${filter ? 'Aucune vente ce mois-ci.' : 'Aucune vente enregistrée.'}</div>`; return; }
 
