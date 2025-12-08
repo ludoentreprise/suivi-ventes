@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* THÈME OLED BLACK */
             --bg-body: #000000;
             --bg-card: #0a0a0a;
             --bg-input: #171717;
@@ -36,7 +35,7 @@
 
         .container { max-width: 1000px; margin: 0 auto; display: none; }
 
-        /* --- LOGIN SCREEN --- */
+        /* --- LOGIN --- */
         #auth-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: var(--bg-body);
@@ -73,12 +72,11 @@
         .stat-value.money { color: var(--success); }
         .stat-subtext { font-size: 0.875rem; color: var(--text-muted); margin-top: auto; padding-top: 0.5rem; }
 
-        /* CARDS */
+        /* CARDS & FORMS */
         .card { background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border); padding: 2rem; margin-bottom: 2rem; }
         .section-header { margin-bottom: 1.5rem; }
         .card-title { font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin-bottom: 1.5rem; }
 
-        /* FORMS */
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem; }
         .form-group { display: flex; flex-direction: column; gap: 0.5rem; text-align: left; }
         label { font-size: 0.875rem; font-weight: 500; color: var(--text-muted); }
@@ -89,19 +87,7 @@
             font-family: inherit; width: 100%; transition: all 0.2s ease; margin-bottom: 1rem;
         }
         input:focus, select:focus { outline: none; border-color: var(--text-main); box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1); }
-        
-        /* CALENDAR FIX FIREFOX & CHROME */
-        input[type="month"] {
-            color-scheme: dark; /* Garde le thème sombre */
-            cursor: pointer;    /* Indique que c'est cliquable */
-            /* Suppression de appearance: none pour compatibilité Firefox */
-        }
-        /* Uniquement pour Chrome/Edge/Safari (Icône blanche) */
-        ::-webkit-calendar-picker-indicator {
-            filter: invert(1);
-            opacity: 0.6;
-            cursor: pointer;
-        }
+        ::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.6; cursor: pointer; }
 
         .button-group { display: flex; gap: 1rem; }
         .button-group-vertical { display: flex; flex-direction: column; gap: 1rem; }
@@ -141,7 +127,7 @@
         .btn-delete:hover { background-color: rgba(239, 68, 68, 0.1); border-color: var(--danger); }
         .empty-state { padding: 3rem; text-align: center; color: var(--text-muted); }
 
-        /* TOAST */
+        /* TOAST & LOADER */
         .toast {
             visibility: hidden; min-width: 250px; background-color: var(--bg-input); color: var(--text-main);
             text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 100;
@@ -188,13 +174,13 @@
 
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-label">CA (Période affichée)</div>
+                <div class="stat-label">Chiffre d'Affaires</div>
                 <div class="stat-value money" id="totalRevenue">0.00€</div>
-            </div>
+                </div>
             <div class="stat-card">
-                <div class="stat-label">Ventes (Période)</div>
+                <div class="stat-label">Ventes</div>
                 <div class="stat-value" id="totalCount">0</div>
-                <div class="stat-subtext">Sur cette vue</div>
+                <div class="stat-subtext">Total affiché</div>
             </div>
             <div class="stat-card">
                 <div class="stat-label">Top Plateforme</div>
@@ -246,14 +232,13 @@
             
             <div class="filter-wrapper">
                 <div class="form-group">
-                    <label for="monthPicker">📅 Sélectionner une période</label>
-                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                        <input type="month" id="monthPicker" style="margin-bottom:0; flex:2; min-width:200px;">
-                        <button class="btn-secondary" onclick="resetView()" style="flex:1; white-space:nowrap;">🔄 Voir les 50 dernières</button>
-                    </div>
+                    <label for="monthFilter">Filtrer par mois (Pour déclaration URSSAF)</label>
+                    <select id="monthFilter">
+                        <option value="">Tout l'historique</option>
+                    </select>
                 </div>
                 <div id="monthlyRevenue" class="monthly-highlight">
-                    Chargement...
+                    Chargement des données...
                 </div>
             </div>
 
@@ -268,7 +253,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy, limit, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // CONFIGURATION
         const firebaseConfig = {
@@ -287,7 +272,6 @@
         let currentUser = null;
         let salesData = [];
         let unsubscribe = null;
-        let currentViewLabel = "50 dernières ventes";
 
         // AUTH
         onAuthStateChanged(auth, (user) => {
@@ -295,7 +279,7 @@
                 currentUser = user;
                 document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('app-container').style.display = 'block';
-                startListeningToSales(null); 
+                startListeningToSales();
                 showToast("✅ Connecté !");
             } else {
                 currentUser = null;
@@ -315,65 +299,30 @@
         };
         window.logout = () => signOut(auth);
 
-        // --- CŒUR DU SYSTÈME ---
-        window.startListeningToSales = (monthString = null) => {
+        // DATA - CHARGEMENT COMPLET (Pour liste déroulante)
+        function startListeningToSales() {
             if (!currentUser) return;
             if (unsubscribe) unsubscribe();
 
-            document.getElementById('tableContainer').innerHTML = '<div class="empty-state"><div class="loader"></div>Chargement des données...</div>';
-
-            let q;
-            if (monthString) {
-                // FILTRAGE MOIS
-                const start = monthString + "-01";
-                const end = monthString + "-31";
-                q = query(
-                    collection(db, `users/${currentUser.uid}/sales`),
-                    where("date", ">=", start),
-                    where("date", "<=", end),
-                    orderBy("date", "desc")
-                );
-                
-                const [y, m] = monthString.split('-');
-                const name = new Date(parseInt(y), parseInt(m)-1).toLocaleDateString('fr-FR',{month:'long', year:'numeric'});
-                currentViewLabel = "Mois de " + name.charAt(0).toUpperCase() + name.slice(1);
-            } else {
-                // DEFAUT 50
-                q = query(
-                    collection(db, `users/${currentUser.uid}/sales`),
-                    orderBy("date", "desc"),
-                    limit(50)
-                );
-                currentViewLabel = "50 dernières ventes";
-            }
-
+            const q = query(collection(db, `users/${currentUser.uid}/sales`), orderBy("date", "desc"));
             unsubscribe = onSnapshot(q, (snap) => {
                 salesData = [];
                 snap.forEach(d => salesData.push({id: d.id, ...d.data()}));
-                refreshView();
+                refreshAll();
             }, (e) => {
                 console.error(e);
                 showToast("Erreur de connexion", false);
             });
-        };
+        }
 
-        // GESTIONNAIRES D'ÉVÉNEMENTS
-        document.getElementById('monthPicker').addEventListener('change', (e) => {
-            if(e.target.value) startListeningToSales(e.target.value);
-        });
-
-        window.resetView = () => {
-            document.getElementById('monthPicker').value = "";
-            startListeningToSales(null);
-        };
-
+        // AJOUT VENTE
         document.getElementById('salesForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             if(!currentUser) return;
             
             const d = document.getElementById('date').value;
             const p = document.getElementById('product').value;
-            const pr = document.getElementById('price').valueAsNumber;
+            const pr = document.getElementById('price').valueAsNumber; // Sécurité type
             const pl = document.getElementById('platform').value;
 
             const btn = this.querySelector('button[type="submit"]');
@@ -397,49 +346,66 @@
             }
         };
 
-        // RENDU UI
+        // UI HELPERS
         function showToast(msg, success=true) {
             const t = document.getElementById("toast"); 
             t.textContent = msg; t.style.borderColor = success ? "var(--success)" : "var(--danger)";
             t.className = "toast show"; setTimeout(() => t.className = t.className.replace("show",""), 3000);
         }
 
-        function refreshView() {
-            // 1. CALCULS SUR LA VUE ACTUELLE
-            let total = 0;
-            salesData.forEach(s => total += s.price);
+        function refreshAll() {
+            // 1. GESTION LISTE DÉROULANTE AUTOMATIQUE
+            const filter = document.getElementById('monthFilter').value;
+            const months = new Set(salesData.map(s => s.date.substring(0,7)));
+            const sel = document.getElementById('monthFilter');
+            const savedVal = sel.value; // Garde la sélection active si possible
             
-            // Mise à jour Stats Haut
-            document.getElementById('totalRevenue').textContent = total.toFixed(2) + "€";
-            document.getElementById('totalCount').textContent = salesData.length;
+            sel.innerHTML = '<option value="">Tout l\'historique</option>';
+            Array.from(months).sort().reverse().forEach(m => {
+                const [y,mo] = m.split('-');
+                const name = new Date(parseInt(y), parseInt(mo)-1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+                const opt = document.createElement('option'); opt.value = m; 
+                opt.textContent = name.charAt(0).toUpperCase() + name.slice(1); 
+                sel.appendChild(opt);
+            });
+            if(savedVal && Array.from(months).includes(savedVal)) sel.value = savedVal;
+
+            // 2. FILTRAGE DONNÉES
+            let displayData = filter ? salesData.filter(s => s.date.startsWith(filter)) : salesData;
             
-            if (salesData.length > 0) {
+            // 3. CALCULS STATS
+            const total = displayData.reduce((a,b)=>a+b.price,0);
+            document.getElementById('totalRevenue').textContent = total.toFixed(2)+"€";
+            document.getElementById('totalCount').textContent = displayData.length;
+
+            // Top Plateforme sur la vue actuelle
+            if(displayData.length) {
                 const counts = {}; 
-                salesData.forEach(s => counts[s.platform] = (counts[s.platform]||0)+1);
+                displayData.forEach(s => counts[s.platform] = (counts[s.platform]||0)+1);
                 const top = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
-                if(top) {
-                    document.getElementById('topPlatform').textContent = top[0];
-                    document.getElementById('topPlatformCount').textContent = top[1]+" vente(s)";
+                if(top) { 
+                    document.getElementById('topPlatform').textContent = top[0]; 
+                    document.getElementById('topPlatformCount').textContent = top[1]+" vente(s)"; 
                 }
             } else {
-                document.getElementById('topPlatform').textContent = "-";
+                document.getElementById('topPlatform').textContent = "-"; 
                 document.getElementById('topPlatformCount').textContent = "0 ventes";
             }
 
-            // Mise à jour Label Déclaration
-            document.getElementById('monthlyRevenue').innerHTML = `Total pour : <strong>${currentViewLabel}</strong> : <span style="color:var(--success); font-size:1.2em;">${total.toFixed(2)}€</span>`;
+            // 4. LABEL BAS
+            const label = filter ? 
+                `CA à déclarer pour ${sel.options[sel.selectedIndex]?.text || filter}` : 
+                "Chiffre d'affaires total affiché";
+            document.getElementById('monthlyRevenue').innerHTML = `${label} : <strong>${total.toFixed(2)}€</strong>`;
 
-            // 2. TABLEAU
+            // 5. TABLEAU
             const tbody = document.getElementById('tableContainer');
-            if(!salesData.length) { 
-                tbody.innerHTML = `<div class="empty-state">Aucune vente trouvée pour cette période.</div>`; 
-                return; 
-            }
+            if(!displayData.length) { tbody.innerHTML = `<div class="empty-state">${filter ? 'Aucune vente ce mois-ci.' : 'Aucune vente enregistrée.'}</div>`; return; }
 
-            salesData.sort((a, b) => b.date.localeCompare(a.date));
+            displayData.sort((a, b) => b.date.localeCompare(a.date));
 
             let html = '<table><thead><tr><th>Date</th><th>Produit</th><th>Plateforme</th><th>Prix</th><th></th></tr></thead><tbody>';
-            salesData.forEach(s => {
+            displayData.forEach(s => {
                 const [yyyy, mm, dd] = s.date.split("-");
                 const dateObj = new Date(parseInt(yyyy, 10), parseInt(mm, 10) - 1, parseInt(dd, 10));
                 const dateStr = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
@@ -456,6 +422,7 @@
         }
 
         document.getElementById('date').valueAsDate = new Date();
+        document.getElementById('monthFilter').addEventListener('change', refreshAll);
     </script>
 </body>
 </html>
