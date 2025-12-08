@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suivi Ventes & URSSAF (Cloud Optimisé)</title>
+    <title>Suivi Ventes & URSSAF</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -90,9 +90,18 @@
         }
         input:focus, select:focus { outline: none; border-color: var(--text-main); box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1); }
         
-        /* CALENDAR OPTIMIZATION */
-        input[type="month"] { appearance: none; color-scheme: dark; }
-        ::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.6; cursor: pointer; }
+        /* CALENDAR FIX FIREFOX & CHROME */
+        input[type="month"] {
+            color-scheme: dark; /* Garde le thème sombre */
+            cursor: pointer;    /* Indique que c'est cliquable */
+            /* Suppression de appearance: none pour compatibilité Firefox */
+        }
+        /* Uniquement pour Chrome/Edge/Safari (Icône blanche) */
+        ::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            opacity: 0.6;
+            cursor: pointer;
+        }
 
         .button-group { display: flex; gap: 1rem; }
         .button-group-vertical { display: flex; flex-direction: column; gap: 1rem; }
@@ -173,7 +182,7 @@
 
     <div class="container" id="app-container">
         <header>
-            <h1>📈 Suivi Ventes (Mode Optimisé)</h1>
+            <h1>📈 Suivi Ventes</h1>
             <button class="btn-logout" onclick="logout()">Se déconnecter</button>
         </header>
 
@@ -181,7 +190,7 @@
             <div class="stat-card">
                 <div class="stat-label">CA (Période affichée)</div>
                 <div class="stat-value money" id="totalRevenue">0.00€</div>
-                </div>
+            </div>
             <div class="stat-card">
                 <div class="stat-label">Ventes (Période)</div>
                 <div class="stat-value" id="totalCount">0</div>
@@ -237,7 +246,7 @@
             
             <div class="filter-wrapper">
                 <div class="form-group">
-                    <label for="monthPicker">📅 Sélectionner une période (Économie Quotas)</label>
+                    <label for="monthPicker">📅 Sélectionner une période</label>
                     <div style="display:flex; gap:10px; flex-wrap:wrap;">
                         <input type="month" id="monthPicker" style="margin-bottom:0; flex:2; min-width:200px;">
                         <button class="btn-secondary" onclick="resetView()" style="flex:1; white-space:nowrap;">🔄 Voir les 50 dernières</button>
@@ -306,7 +315,7 @@
         };
         window.logout = () => signOut(auth);
 
-        // --- CŒUR DU SYSTÈME OPTIMISÉ ---
+        // --- CŒUR DU SYSTÈME ---
         window.startListeningToSales = (monthString = null) => {
             if (!currentUser) return;
             if (unsubscribe) unsubscribe();
@@ -315,6 +324,7 @@
 
             let q;
             if (monthString) {
+                // FILTRAGE MOIS
                 const start = monthString + "-01";
                 const end = monthString + "-31";
                 q = query(
@@ -328,6 +338,7 @@
                 const name = new Date(parseInt(y), parseInt(m)-1).toLocaleDateString('fr-FR',{month:'long', year:'numeric'});
                 currentViewLabel = "Mois de " + name.charAt(0).toUpperCase() + name.slice(1);
             } else {
+                // DEFAUT 50
                 q = query(
                     collection(db, `users/${currentUser.uid}/sales`),
                     orderBy("date", "desc"),
@@ -403,8 +414,6 @@
             document.getElementById('totalCount').textContent = salesData.length;
             
             if (salesData.length > 0) {
-                // LOGIQUE PRIX MOYEN RETIRÉE ICI
-                
                 const counts = {}; 
                 salesData.forEach(s => counts[s.platform] = (counts[s.platform]||0)+1);
                 const top = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
