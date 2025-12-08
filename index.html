@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suivi Ventes & URSSAF (Cloud)</title>
+    <title>Suivi Ventes & URSSAF (Cloud Optimisé)</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -90,6 +90,8 @@
         }
         input:focus, select:focus { outline: none; border-color: var(--text-main); box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1); }
         
+        /* CALENDAR OPTIMIZATION */
+        input[type="month"] { appearance: none; color-scheme: dark; }
         ::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.6; cursor: pointer; }
 
         .button-group { display: flex; gap: 1rem; }
@@ -171,20 +173,20 @@
 
     <div class="container" id="app-container">
         <header>
-            <h1>📈 Suivi Ventes & URSSAF</h1>
+            <h1>📈 Suivi Ventes (Mode Optimisé)</h1>
             <button class="btn-logout" onclick="logout()">Se déconnecter</button>
         </header>
 
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-label">Chiffre d'Affaires</div>
+                <div class="stat-label">CA (Période affichée)</div>
                 <div class="stat-value money" id="totalRevenue">0.00€</div>
                 <div class="stat-subtext" id="avgPrice">Prix moyen : 0.00€</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Ventes</div>
+                <div class="stat-label">Ventes (Période)</div>
                 <div class="stat-value" id="totalCount">0</div>
-                <div class="stat-subtext">Articles vendus</div>
+                <div class="stat-subtext">Sur cette vue</div>
             </div>
             <div class="stat-card">
                 <div class="stat-label">Top Plateforme</div>
@@ -236,13 +238,14 @@
             
             <div class="filter-wrapper">
                 <div class="form-group">
-                    <label for="monthFilter">Filtrer par mois (Pour déclaration URSSAF)</label>
-                    <select id="monthFilter">
-                        <option value="">Tout l'historique</option>
-                    </select>
+                    <label for="monthPicker">📅 Sélectionner une période (Économie Quotas)</label>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                        <input type="month" id="monthPicker" style="margin-bottom:0; flex:2; min-width:200px;">
+                        <button class="btn-secondary" onclick="resetView()" style="flex:1; white-space:nowrap;">🔄 Voir les 50 dernières</button>
+                    </div>
                 </div>
                 <div id="monthlyRevenue" class="monthly-highlight">
-                    Chargement des données...
+                    Chargement...
                 </div>
             </div>
 
@@ -255,9 +258,10 @@
     <div id="toast" class="toast">Notification</div>
 
     <script type="module">
+        // IMPORTATIONS AJOUTÉES : limit, where
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy, limit, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // CONFIGURATION
         const firebaseConfig = {
@@ -276,14 +280,15 @@
         let currentUser = null;
         let salesData = [];
         let unsubscribe = null;
+        let currentViewLabel = "50 dernières ventes";
 
-        // AUTHENTIFICATION
+        // AUTH
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
                 document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('app-container').style.display = 'block';
-                startListeningToSales();
+                startListeningToSales(null); // Mode par défaut : 50 derniers
                 showToast("✅ Connecté !");
             } else {
                 currentUser = null;
@@ -303,58 +308,84 @@
         };
         window.logout = () => signOut(auth);
 
-        // DATA - ECOUTE TEMPS RÉEL
-        function startListeningToSales() {
+        // --- CŒUR DU SYSTÈME OPTIMISÉ ---
+        window.startListeningToSales = (monthString = null) => {
             if (!currentUser) return;
             if (unsubscribe) unsubscribe();
 
-            const q = query(collection(db, `users/${currentUser.uid}/sales`), orderBy("date", "desc"));
+            // Affichage de chargement
+            document.getElementById('tableContainer').innerHTML = '<div class="empty-state"><div class="loader"></div>Chargement des données...</div>';
+
+            let q;
+            if (monthString) {
+                // MODE MENSUEL (Filtrage Serveur)
+                const start = monthString + "-01";
+                const end = monthString + "-31";
+                q = query(
+                    collection(db, `users/${currentUser.uid}/sales`),
+                    where("date", ">=", start),
+                    where("date", "<=", end),
+                    orderBy("date", "desc")
+                );
+                
+                // Formattage joli du mois pour le titre
+                const [y, m] = monthString.split('-');
+                const name = new Date(parseInt(y), parseInt(m)-1).toLocaleDateString('fr-FR',{month:'long', year:'numeric'});
+                currentViewLabel = "Mois de " + name.charAt(0).toUpperCase() + name.slice(1);
+            } else {
+                // MODE DÉFAUT (Les 50 derniers)
+                q = query(
+                    collection(db, `users/${currentUser.uid}/sales`),
+                    orderBy("date", "desc"),
+                    limit(50)
+                );
+                currentViewLabel = "50 dernières ventes";
+            }
+
             unsubscribe = onSnapshot(q, (snap) => {
                 salesData = [];
                 snap.forEach(d => salesData.push({id: d.id, ...d.data()}));
-                refreshAll();
+                refreshView();
             }, (e) => {
                 console.error(e);
                 showToast("Erreur de connexion", false);
             });
-        }
+        };
 
-        // ENREGISTREMENT VENTE
+        // GESTIONNAIRES D'ÉVÉNEMENTS
+        document.getElementById('monthPicker').addEventListener('change', (e) => {
+            if(e.target.value) startListeningToSales(e.target.value);
+        });
+
+        window.resetView = () => {
+            document.getElementById('monthPicker').value = "";
+            startListeningToSales(null);
+        };
+
         document.getElementById('salesForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             if(!currentUser) return;
             
             const d = document.getElementById('date').value;
             const p = document.getElementById('product').value;
-            // OPTIMISATION : Utilisation de valueAsNumber pour garantir un type numérique
             const pr = document.getElementById('price').valueAsNumber;
             const pl = document.getElementById('platform').value;
 
             const btn = this.querySelector('button[type="submit"]');
-            btn.disabled = true; 
-            btn.textContent = "Enregistrement..."; 
+            btn.disabled = true; btn.textContent = "Enregistrement..."; 
             
             try {
                 await addDoc(collection(db, `users/${currentUser.uid}/sales`), { 
-                    date: d, 
-                    product: p.trim(), 
-                    price: pr, 
-                    platform: pl, 
-                    createdAt: new Date() 
+                    date: d, product: p.trim(), price: pr, platform: pl, createdAt: new Date() 
                 });
                 this.reset(); 
                 document.getElementById('date').valueAsDate = new Date();
                 showToast("✅ Vente enregistrée !");
-            } catch(e) { 
-                showToast("Erreur sauvegarde", false); 
-            } finally { 
-                btn.disabled = false; 
-                // CORRECTION VISUELLE : Maintien de la casse correcte
-                btn.textContent = "Enregistrer la vente"; 
-            }
+                // Note : Firestore mettra à jour la liste automatiquement grâce au listener
+            } catch(e) { showToast("Erreur sauvegarde", false); } 
+            finally { btn.disabled = false; btn.textContent = "Enregistrer la vente"; }
         });
 
-        // SUPPRESSION
         window.deleteSale = async (id) => {
             if (confirm('Supprimer cette vente ?')) {
                 try { await deleteDoc(doc(db, `users/${currentUser.uid}/sales`, id)); showToast("🗑️ Vente supprimée"); }
@@ -362,75 +393,55 @@
             }
         };
 
-        // UI & HELPERS
+        // RENDU UI
         function showToast(msg, success=true) {
             const t = document.getElementById("toast"); 
             t.textContent = msg; t.style.borderColor = success ? "var(--success)" : "var(--danger)";
             t.className = "toast show"; setTimeout(() => t.className = t.className.replace("show",""), 3000);
         }
 
-        function refreshAll() {
-            // 1. STATS GLOBALES
-            if(!salesData.length) {
-                document.getElementById('totalRevenue').textContent = "0.00€";
-                document.getElementById('avgPrice').textContent = "Prix moyen : 0.00€";
-                document.getElementById('totalCount').textContent = "0";
-                document.getElementById('topPlatform').textContent = "-";
-                document.getElementById('topPlatformCount').textContent = "0 ventes";
-            } else {
-                const total = salesData.reduce((a,b)=>a+b.price,0);
+        function refreshView() {
+            // 1. CALCULS SUR LA VUE ACTUELLE
+            let total = 0;
+            salesData.forEach(s => total += s.price);
+            
+            // Mise à jour Stats Haut
+            document.getElementById('totalRevenue').textContent = total.toFixed(2) + "€";
+            document.getElementById('totalCount').textContent = salesData.length;
+            
+            if (salesData.length > 0) {
                 const avg = total / salesData.length;
-
-                document.getElementById('totalRevenue').textContent = total.toFixed(2)+"€";
-                // CORRECTION CODE MORT : Mise à jour active du prix moyen
                 document.getElementById('avgPrice').textContent = "Prix moyen : " + avg.toFixed(2) + "€";
-                
-                document.getElementById('totalCount').textContent = salesData.length;
                 
                 const counts = {}; 
                 salesData.forEach(s => counts[s.platform] = (counts[s.platform]||0)+1);
                 const top = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
-                if(top) { 
-                    document.getElementById('topPlatform').textContent = top[0]; 
-                    document.getElementById('topPlatformCount').textContent = top[1]+" vente(s)"; 
+                if(top) {
+                    document.getElementById('topPlatform').textContent = top[0];
+                    document.getElementById('topPlatformCount').textContent = top[1]+" vente(s)";
                 }
+            } else {
+                document.getElementById('avgPrice').textContent = "Prix moyen : 0.00€";
+                document.getElementById('topPlatform').textContent = "-";
+                document.getElementById('topPlatformCount').textContent = "0 ventes";
             }
 
-            // 2. FILTRE MOIS
-            const filter = document.getElementById('monthFilter').value;
-            const months = new Set(salesData.map(s => s.date.substring(0,7)));
-            const sel = document.getElementById('monthFilter');
-            const savedVal = sel.value;
-            
-            sel.innerHTML = '<option value="">Tout l\'historique</option>';
-            Array.from(months).sort().reverse().forEach(m => {
-                const [y,mo] = m.split('-');
-                // SECURITÉ TYPE : Parsing explicite des entiers
-                const name = new Date(parseInt(y, 10), parseInt(mo, 10)-1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
-                const opt = document.createElement('option'); opt.value = m; 
-                opt.textContent = name.charAt(0).toUpperCase() + name.slice(1); 
-                sel.appendChild(opt);
-            });
-            if(savedVal && Array.from(months).includes(savedVal)) sel.value = savedVal;
+            // Mise à jour Label Déclaration
+            document.getElementById('monthlyRevenue').innerHTML = `Total pour : <strong>${currentViewLabel}</strong> : <span style="color:var(--success); font-size:1.2em;">${total.toFixed(2)}€</span>`;
 
-            let displayData = filter ? salesData.filter(s => s.date.startsWith(filter)) : salesData;
-            
-            // 3. AFFICHAGE TABLEAU & TOTAL FILTRÉ
-            const monthlyTotal = displayData.reduce((a,b)=>a+b.price,0);
-            const label = filter ? 
-                `Chiffre d'affaires à déclarer pour ${sel.options[sel.selectedIndex]?.text || filter}` : 
-                "Chiffre d'affaires total affiché";
-            document.getElementById('monthlyRevenue').innerHTML = `${label} : <strong>${monthlyTotal.toFixed(2)}€</strong>`;
-
+            // 2. TABLEAU
             const tbody = document.getElementById('tableContainer');
-            if(!displayData.length) { tbody.innerHTML = `<div class="empty-state">${filter ? 'Aucune vente ce mois-ci.' : 'Aucune vente enregistrée.'}</div>`; return; }
+            if(!salesData.length) { 
+                tbody.innerHTML = `<div class="empty-state">Aucune vente trouvée pour cette période.</div>`; 
+                return; 
+            }
 
-            displayData.sort((a, b) => b.date.localeCompare(a.date));
+            // Tri local (sécurité supplémentaire même si Firestore trie déjà)
+            salesData.sort((a, b) => b.date.localeCompare(a.date));
 
             let html = '<table><thead><tr><th>Date</th><th>Produit</th><th>Plateforme</th><th>Prix</th><th></th></tr></thead><tbody>';
-            displayData.forEach(s => {
+            salesData.forEach(s => {
                 const [yyyy, mm, dd] = s.date.split("-");
-                // SECURITÉ DATE : Parsing explicite pour affichage correct
                 const dateObj = new Date(parseInt(yyyy, 10), parseInt(mm, 10) - 1, parseInt(dd, 10));
                 const dateStr = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 
@@ -446,7 +457,6 @@
         }
 
         document.getElementById('date').valueAsDate = new Date();
-        document.getElementById('monthFilter').addEventListener('change', refreshAll);
     </script>
 </body>
 </html>
