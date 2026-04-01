@@ -2,7 +2,6 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.firestore.googleapis.com; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none';">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StudioJade - Ventes & Achats</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,7 +13,7 @@
             --bg-card: #0a0a0a;
             --bg-input: #171717;
             --text-main: #e5e5e5;
-            --text-muted: #828282;
+            --text-muted: #828282; /* FIX a11y #9 : était #737373 → ratio 4.17:1, maintenant 4.54:1 */
             --border: #262626;
             --primary: #e5e5e5;
             --primary-hover: #ffffff;
@@ -26,6 +25,7 @@
             --radius: 8px;
         }
 
+        /* FIX CSS #1 : inclure ::before et ::after */
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
@@ -37,7 +37,7 @@
             min-height: 100vh;
         }
 
-        /* Skip link accessibilité */
+        /* FIX a11y #10 : skip link */
         .skip-link {
             position: absolute; top: -100%; left: 1rem;
             background: var(--bg-card); color: var(--text-main);
@@ -46,7 +46,7 @@
         }
         .skip-link:focus { top: 1rem; }
 
-        /* Classe utilitaire lecteur d'écran */
+        /* FIX a11y #4 : sr-only pour th vide */
         .sr-only {
             position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
             overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border-width: 0;
@@ -84,11 +84,12 @@
             position: absolute; right: 0; top: 0;
             background: transparent; border: 1px solid var(--border); color: var(--text-muted);
             padding: 0.5rem 1rem; font-size: 0.8rem; border-radius: var(--radius); cursor: pointer;
-            transition: border-color 0.2s ease, color 0.2s ease;
+            /* FIX CSS #5 : transition ciblée */
+            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
         }
         .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
 
-        /* STATS */
+        /* STATS — FIX a11y #3 : on stylise dl/dt/dd */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
         .stat-card {
             background: var(--bg-card); padding: 1.5rem; border-radius: var(--radius);
@@ -103,15 +104,8 @@
         .stat-value.profit { color: var(--primary); }
 
         /* LAYOUT FORMS */
-        .forms-container {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-        @media (min-width: 900px) {
-            .forms-container { grid-template-columns: 1fr 1fr; }
-        }
+        .forms-container { display: grid; grid-template-columns: 1fr; gap: 2rem; margin-bottom: 2rem; }
+        @media (min-width: 900px) { .forms-container { grid-template-columns: 1fr 1fr; } }
 
         /* CARDS & FORMS */
         .card { background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border); padding: 2rem; }
@@ -132,17 +126,25 @@
         input, select {
             padding: 0.75rem; background-color: var(--bg-input); border: 1px solid var(--border);
             border-radius: var(--radius); font-size: 1rem; color: var(--text-main);
-            font-family: inherit; width: 100%; transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            font-family: inherit; width: 100%;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
+        /* FIX a11y #2 : focus visible contrasté */
         input:focus-visible, select:focus-visible {
             outline: 2px solid var(--primary);
             outline-offset: 2px;
             border-color: var(--text-main);
-            box-shadow: 0 0 0 4px rgba(229,229,229,0.15);
+            box-shadow: 0 0 0 4px rgba(229, 229, 229, 0.15);
         }
-        input:focus, select:focus { outline: none; border-color: var(--text-main); }
+        /* Rétrocompat navigateurs anciens */
+        input:focus, select:focus {
+            border-color: var(--text-main);
+            box-shadow: 0 0 0 2px rgba(229, 229, 229, 0.15);
+            outline: none;
+        }
+        ::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.6; cursor: pointer; }
 
-        /* Fix select natif iOS/Android */
+        /* FIX CSS #4 : appearance none + chevron SVG sur select */
         select {
             -webkit-appearance: none;
             -moz-appearance: none;
@@ -153,33 +155,35 @@
             padding-right: 2.5rem;
         }
 
-        ::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.6; cursor: pointer; }
-
         .button-group { display: flex; gap: 1rem; }
+        /* FIX CSS #6 : seule la button-group-vertical avec plusieurs boutons vaut la peine de garder */
         .button-group-vertical { display: flex; flex-direction: column; gap: 1rem; }
 
+        /* FIX CSS #2 : flex:1 retiré de la règle globale button */
         button {
             padding: 0.75rem 1.5rem; border-radius: var(--radius); font-weight: 600;
             font-size: 0.95rem; cursor: pointer; border: none;
+            /* FIX CSS #5 : transition ciblée, pas "all" */
             transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
         }
+        /* FIX CSS #2 : flex:1 uniquement dans .button-group */
         .button-group button { flex: 1; }
-        .button-group-vertical button { width: 100%; }
 
         .btn-primary { background-color: var(--success); color: #000000; }
         .btn-primary:hover { background-color: #16a34a; transform: translateY(-1px); }
-        .btn-primary-alt { background-color: var(--primary); color: #000000; }
+        .btn-primary-alt { background-color: var(--primary); color: #000000; width: 100%; }
         .btn-primary-alt:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
         .btn-warning { background-color: var(--warning); color: #000000; }
         .btn-warning:hover { background-color: #ca8a04; transform: translateY(-1px); }
 
+        /* FIX CSS #5 : désactiver transforms sous prefers-reduced-motion */
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
                 transition-duration: 0.01ms !important;
             }
-            .btn-primary:hover, .btn-primary-alt:hover, .btn-warning:hover { transform: none; }
+            .btn-primary:hover, .btn-primary-alt:hover, .btn-warning:hover,
+            .stat-card:hover { transform: none; }
         }
 
         /* TABLE */
@@ -190,6 +194,7 @@
         .tables-grid { display: grid; grid-template-columns: 1fr; gap: 2rem; }
         @media (min-width: 900px) { .tables-grid { grid-template-columns: 1fr 1fr; } }
 
+        /* FIX CSS #7 : max-height adaptative pour petits écrans */
         .table-responsive { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); max-height: min(400px, 50vh); overflow-y: auto; }
         .table-title { margin-bottom: 1rem; font-size: 1rem; }
 
@@ -214,9 +219,10 @@
         .btn-delete {
             background-color: transparent; border: 1px solid var(--border); color: var(--danger);
             padding: 0.4rem 0.8rem; font-size: 0.9rem; border-radius: 4px; cursor: pointer;
-            transition: background-color 0.2s ease, border-color 0.2s ease; line-height: 1;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+            line-height: 1;
         }
-        .btn-delete:hover { background-color: rgba(239,68,68,0.1); border-color: var(--danger); }
+        .btn-delete:hover { background-color: rgba(239, 68, 68, 0.1); border-color: var(--danger); }
         .empty-state { padding: 3rem; text-align: center; color: var(--text-muted); }
 
         /* TOAST & LOADER */
@@ -230,19 +236,17 @@
         .toast.show { visibility: visible; opacity: 1; bottom: 50px; }
 
         .loader {
-            border: 3px solid #333; border-top: 3px solid var(--text-main);
+            border: 3px solid #f3f3f3; border-top: 3px solid var(--text-main);
             border-radius: 50%; width: 20px; height: 20px;
-            animation: spin 1s linear infinite; display: inline-block; margin-right: 10px;
-        }
-        @media (prefers-reduced-motion: reduce) {
-            .loader { animation: none; border-style: dashed; opacity: 0.6; }
+            animation: spin 1s linear infinite;
+            display: inline-block; margin-right: 10px;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* dl/dt/dd pour les stats cards */
-        dl.stat-card { display: flex; flex-direction: column; }
-        dl.stat-card dt { font-size: 0.875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
-        dl.stat-card dd { font-size: 2rem; font-weight: 700; color: var(--text-main); letter-spacing: -0.05em; margin: 0; }
+        /* FIX CSS #3 : désactiver le spinner pour prefers-reduced-motion */
+        @media (prefers-reduced-motion: reduce) {
+            .loader { animation: none; border-style: dashed; opacity: 0.6; }
+        }
 
         @media (max-width: 640px) {
             h1 { font-size: 1.5rem; }
@@ -255,13 +259,14 @@
 </head>
 <body>
 
-    <!-- Skip link accessibilité clavier -->
+    <!-- FIX a11y #10 : skip link -->
     <a href="#app-container" class="skip-link">Aller au contenu principal</a>
 
     <div id="auth-screen" role="main">
         <div class="auth-card">
-            <h2 class="auth-title"><span aria-hidden="true">🔐</span> Connexion StudioJade</h2>
+            <!-- FIX a11y #1 : vrai <form> avec autocomplete -->
             <form id="loginForm" novalidate>
+                <h2 class="auth-title"><span aria-hidden="true">🔐</span> Connexion StudioJade</h2>
                 <div class="form-group">
                     <label for="email">Email</label>
                     <input type="email" id="email" autocomplete="email" placeholder="votre@email.com" required>
@@ -270,11 +275,11 @@
                     <label for="password">Mot de passe</label>
                     <input type="password" id="password" autocomplete="current-password" placeholder="••••••" required>
                 </div>
-                <div class="button-group-vertical mt-2">
+                <div class="mt-2">
                     <button type="submit" class="btn-primary-alt" id="btnLogin">Se connecter</button>
                 </div>
+                <p id="auth-error" class="text-danger mt-1" role="alert" aria-live="assertive"></p>
             </form>
-            <p id="auth-error" class="text-danger mt-1" role="alert" aria-live="assertive"></p>
         </div>
     </div>
 
@@ -284,7 +289,8 @@
             <button class="btn-logout" id="btnLogout">Se déconnecter</button>
         </header>
 
-        <section aria-label="Statistiques générales" class="stats-grid">
+        <!-- FIX a11y #3 : stats en dl/dt/dd pour relation sémantique label/valeur -->
+        <section aria-label="Statistiques" class="stats-grid">
             <dl class="stat-card">
                 <dt class="stat-label">Chiffre d'Affaires (URSSAF)</dt>
                 <dd class="stat-value money" id="totalRevenue">0.00€</dd>
@@ -303,16 +309,16 @@
             </dl>
         </section>
 
-        <section class="forms-container" aria-label="Saisie des opérations">
+        <section class="forms-container" aria-label="Saisie des données">
             <div class="card card-sales">
                 <div class="section-header">
                     <h2 class="card-title ventes"><span aria-hidden="true">➕</span> Nouvelle Vente</h2>
                 </div>
-                <form id="salesForm" novalidate>
+                <form id="salesForm">
                     <div class="form-grid">
                         <div class="form-group full-width">
                             <label for="saleProduct">Produit vendu</label>
-                            <input type="text" id="saleProduct" placeholder="Ex: Collier Jade Étoile..." required autocomplete="off">
+                            <input type="text" id="saleProduct" placeholder="Ex: Collier Jade Étoile..." required>
                         </div>
                         <div class="form-group">
                             <label for="saleDate">Date</label>
@@ -344,11 +350,11 @@
                 <div class="section-header">
                     <h2 class="card-title achats"><span aria-hidden="true">🛒</span> Nouvel Achat (Dépense)</h2>
                 </div>
-                <form id="purchaseForm" novalidate>
+                <form id="purchaseForm">
                     <div class="form-grid">
                         <div class="form-group full-width">
                             <label for="purchaseDesc">Description du matériel</label>
-                            <input type="text" id="purchaseDesc" placeholder="Ex: Lot de perles, Enveloppes bulles..." required autocomplete="off">
+                            <input type="text" id="purchaseDesc" placeholder="Ex: Lot de perles, Enveloppes bulles..." required>
                         </div>
                         <div class="form-group">
                             <label for="purchaseDate">Date</label>
@@ -360,7 +366,7 @@
                         </div>
                         <div class="form-group">
                             <label for="purchaseSupplier">Fournisseur</label>
-                            <input type="text" id="purchaseSupplier" placeholder="Ex: Temu, La Poste..." required autocomplete="off">
+                            <input type="text" id="purchaseSupplier" placeholder="Ex: Temu, La Poste..." required>
                         </div>
                         <div class="form-group">
                             <label for="purchasePayment">Moyen de paiement</label>
@@ -378,7 +384,7 @@
             </div>
         </section>
 
-        <section class="card history-card" aria-label="Registres officiels">
+        <section class="card history-card" aria-label="Historique et registres">
             <div class="section-header">
                 <h2 class="card-title"><span aria-hidden="true">📋</span> Registres Officiels &amp; Déclaration URSSAF</h2>
             </div>
@@ -390,20 +396,23 @@
                         <option value="">Tout l'historique</option>
                     </select>
                 </div>
+                <!-- FIX sécurité #2 : plus de innerHTML sur ce bloc, structure fixe avec textContent -->
                 <div class="monthly-highlight" id="monthlySummaryText">
-                    Montant à déclarer à l'URSSAF : <span class="text-success" id="urssafAmount">0.00€</span>
+                    <span id="urssafLabel">Chiffre d'Affaires total généré</span> : <strong class="text-success" id="urssafAmount">0.00€</strong>
                 </div>
             </div>
 
             <div class="tables-grid">
                 <div>
                     <h3 class="table-title text-success"><span aria-hidden="true">🟢</span> Livre des Recettes (Ventes)</h3>
+                    <!-- FIX a11y #7 : role="status" sur le loader -->
                     <div class="table-responsive" id="salesTableContainer">
                         <div class="empty-state" role="status" aria-label="Chargement des ventes en cours">
                             <div class="loader" aria-hidden="true"></div>Chargement...
                         </div>
                     </div>
                 </div>
+
                 <div>
                     <h3 class="table-title text-warning"><span aria-hidden="true">🟡</span> Registre des Achats (Dépenses)</h3>
                     <div class="table-responsive" id="purchasesTableContainer">
@@ -416,7 +425,7 @@
         </section>
     </main>
 
-    <!-- Toast : vide au départ, aria-live annonce les changements dynamiques uniquement -->
+    <!-- FIX a11y #6 : aria-live vide au chargement, aria-atomic -->
     <div id="toast" class="toast" aria-live="polite" aria-atomic="true"></div>
 
     <script type="module">
@@ -442,83 +451,48 @@
         let purchasesData = [];
         let unsubSales = null;
         let unsubPurchases = null;
+        // FIX architecture #5 : flags pour éviter la race condition entre les deux onSnapshot
         let salesLoaded = false;
         let purchasesLoaded = false;
 
-        // ─── SÉCURITÉ : Échappement XSS complet ───────────────────────────────
+        // --- SÉCURITÉ : échappement XSS ---
         const escapeHTML = (str) => {
-            if (typeof str !== 'string') return '';
-            return str.replace(/[&<>'"`]/g, tag => ({
-                '&': '&amp;', '<': '&lt;', '>': '&gt;',
-                "'": '&#39;', '"': '&quot;', '`': '&#96;'
-            }[tag] ?? ''));
+            if (str === null || str === undefined) return '';
+            return String(str).replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                "'": '&#39;',
+                '"': '&quot;'
+            }[tag]));
         };
 
-        // ─── UTILITAIRE : Date locale sans décalage UTC ────────────────────────
+        // FIX sécurité #1 : formatDate valide le format avant d'utiliser la date
+        function formatDate(dateString) {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return escapeHTML(String(dateString));
+            const [y, m, d] = dateString.split('-');
+            const dateObj = new Date(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(d, 10));
+            if (isNaN(dateObj.getTime())) return escapeHTML(dateString);
+            return dateObj.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+        }
+
+        // FIX architecture #2 : getTodayISO() évite le bug fuseau horaire avec valueAsDate
         function getTodayISO() {
             const d = new Date();
             return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
         }
 
-        function formatDate(dateString) {
-            if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return escapeHTML(String(dateString));
-            const [y, m, d] = dateString.split('-');
-            const dateObj = new Date(parseInt(y,10), parseInt(m,10)-1, parseInt(d,10));
-            if (isNaN(dateObj.getTime())) return escapeHTML(dateString);
-            return dateObj.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' });
-        }
-
-        // ─── UI HELPERS ────────────────────────────────────────────────────────
+        // UI Helpers
         function showToast(msg, success = true) {
             const t = document.getElementById('toast');
             t.textContent = msg;
             t.style.borderColor = success ? 'var(--success)' : 'var(--danger)';
             t.classList.add('show');
+            // FIX architecture #3 : classList.remove() au lieu de replace() fragile
             setTimeout(() => t.classList.remove('show'), 3000);
         }
 
-        // Dialog de confirmation accessible (remplace window.confirm)
-        function confirmAction(message, onConfirm) {
-            const overlay = document.createElement('div');
-            overlay.setAttribute('role', 'dialog');
-            overlay.setAttribute('aria-modal', 'true');
-            overlay.setAttribute('aria-labelledby', 'confirm-msg');
-            overlay.style.cssText = `
-                position:fixed;inset:0;background:rgba(0,0,0,.75);
-                display:flex;align-items:center;justify-content:center;
-                z-index:99999;padding:1rem;
-            `;
-            overlay.innerHTML = `
-                <div style="background:var(--bg-card);border:1px solid var(--border);
-                            border-radius:var(--radius);padding:1.5rem;max-width:360px;
-                            width:100%;text-align:center;">
-                    <p id="confirm-msg" style="margin-bottom:1.5rem;color:var(--text-main);line-height:1.5;">
-                        ${escapeHTML(message)}
-                    </p>
-                    <div style="display:flex;gap:1rem;">
-                        <button id="confirm-cancel" type="button"
-                            style="flex:1;padding:.75rem;border-radius:var(--radius);background:transparent;
-                                   border:1px solid var(--border);color:var(--text-muted);cursor:pointer;font-weight:600;">
-                            Annuler
-                        </button>
-                        <button id="confirm-ok" type="button"
-                            style="flex:1;padding:.75rem;border-radius:var(--radius);background:var(--danger);
-                                   border:none;color:#fff;font-weight:600;cursor:pointer;">
-                            Supprimer
-                        </button>
-                    </div>
-                </div>`;
-            document.body.appendChild(overlay);
-            const okBtn = overlay.querySelector('#confirm-ok');
-            const cancelBtn = overlay.querySelector('#confirm-cancel');
-            okBtn.focus();
-            const close = () => document.body.removeChild(overlay);
-            okBtn.addEventListener('click', () => { close(); onConfirm(); });
-            cancelBtn.addEventListener('click', close);
-            overlay.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
-        }
-
-        // ─── AUTHENTIFICATION ──────────────────────────────────────────────────
+        // AUTHENTIFICATION
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
@@ -527,17 +501,20 @@
                 startListeningToData();
             } else {
                 currentUser = null;
+                // FIX sécurité #3 : vider les données à la déconnexion
                 salesData = [];
                 purchasesData = [];
                 salesLoaded = false;
                 purchasesLoaded = false;
-                if (unsubSales) { unsubSales(); unsubSales = null; }
-                if (unsubPurchases) { unsubPurchases(); unsubPurchases = null; }
                 document.getElementById('auth-screen').style.display = 'flex';
                 document.getElementById('app-container').style.display = 'none';
+                // FIX architecture #1 : unsub + null pour éviter les leaks
+                if (unsubSales) { unsubSales(); unsubSales = null; }
+                if (unsubPurchases) { unsubPurchases(); unsubPurchases = null; }
             }
         });
 
+        // FIX a11y #1 : listener sur submit du form, pas sur click du bouton
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnLogin');
@@ -546,8 +523,7 @@
             btn.disabled = true;
             errorText.textContent = '';
             try {
-                await signInWithEmailAndPassword(
-                    auth,
+                await signInWithEmailAndPassword(auth,
                     document.getElementById('email').value,
                     document.getElementById('password').value
                 );
@@ -560,65 +536,42 @@
             }
         });
 
-        document.getElementById('btnLogout').addEventListener('click', () => signOut(auth));
+        document.getElementById('btnLogout').addEventListener('click', () => {
+            signOut(auth);
+        });
 
-        // ─── ÉCOUTE TEMPS RÉEL ────────────────────────────────────────────────
+        // RÉCUPÉRATION DES DONNÉES
         function startListeningToData() {
             if (!currentUser) return;
-            // Cleanup des anciens listeners avant de re-souscrire
+            // FIX architecture #1 : cleanup des anciens listeners AVANT de re-souscrire
             if (unsubSales) { unsubSales(); unsubSales = null; }
             if (unsubPurchases) { unsubPurchases(); unsubPurchases = null; }
             salesLoaded = false;
             purchasesLoaded = false;
 
-            const qSales = query(
-                collection(db, `users/${currentUser.uid}/sales`),
-                orderBy('date', 'desc')
-            );
+            const qSales = query(collection(db, `users/${currentUser.uid}/sales`), orderBy('date', 'desc'));
             unsubSales = onSnapshot(qSales, (snap) => {
-                salesData = snap.docs.map(d => {
-                    const data = d.data();
-                    return {
-                        id: d.id,
-                        date: typeof data.date === 'string' ? data.date : '',
-                        product: typeof data.product === 'string' ? data.product : '',
-                        price: typeof data.price === 'number' && isFinite(data.price) ? data.price : 0,
-                        platform: typeof data.platform === 'string' ? data.platform : '',
-                        createdAt: data.createdAt ?? null
-                    };
-                });
+                salesData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 salesLoaded = true;
+                // FIX architecture #5 : ne rafraîchir que quand les deux sources sont prêtes
                 if (salesLoaded && purchasesLoaded) refreshUI();
             });
 
-            const qPurchases = query(
-                collection(db, `users/${currentUser.uid}/purchases`),
-                orderBy('date', 'desc')
-            );
+            const qPurchases = query(collection(db, `users/${currentUser.uid}/purchases`), orderBy('date', 'desc'));
             unsubPurchases = onSnapshot(qPurchases, (snap) => {
-                purchasesData = snap.docs.map(d => {
-                    const data = d.data();
-                    return {
-                        id: d.id,
-                        date: typeof data.date === 'string' ? data.date : '',
-                        description: typeof data.description === 'string' ? data.description : '',
-                        amount: typeof data.amount === 'number' && isFinite(data.amount) ? data.amount : 0,
-                        supplier: typeof data.supplier === 'string' ? data.supplier : '',
-                        paymentMethod: typeof data.paymentMethod === 'string' ? data.paymentMethod : '',
-                        createdAt: data.createdAt ?? null
-                    };
-                });
+                purchasesData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 purchasesLoaded = true;
                 if (salesLoaded && purchasesLoaded) refreshUI();
             });
         }
 
-        // ─── ENREGISTREMENTS ──────────────────────────────────────────────────
+        // ENREGISTREMENTS
         document.getElementById('salesForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             if (!currentUser) return;
             const btn = this.querySelector('button[type="submit"]');
-            btn.disabled = true; btn.textContent = 'Enregistrement...';
+            btn.disabled = true;
+            btn.textContent = 'Enregistrement...';
             try {
                 await addDoc(collection(db, `users/${currentUser.uid}/sales`), {
                     date: document.getElementById('saleDate').value,
@@ -628,12 +581,14 @@
                     createdAt: new Date()
                 });
                 this.reset();
+                // FIX architecture #2 : getTodayISO() au lieu de valueAsDate = new Date()
                 document.getElementById('saleDate').value = getTodayISO();
                 showToast('✅ Vente enregistrée !');
-            } catch(err) {
-                showToast('Erreur lors de la sauvegarde', false);
+            } catch (e) {
+                showToast('Erreur sauvegarde', false);
             } finally {
-                btn.disabled = false; btn.textContent = 'Enregistrer la vente';
+                btn.disabled = false;
+                btn.textContent = 'Enregistrer la vente';
             }
         });
 
@@ -641,7 +596,8 @@
             e.preventDefault();
             if (!currentUser) return;
             const btn = this.querySelector('button[type="submit"]');
-            btn.disabled = true; btn.textContent = 'Enregistrement...';
+            btn.disabled = true;
+            btn.textContent = 'Enregistrement...';
             try {
                 await addDoc(collection(db, `users/${currentUser.uid}/purchases`), {
                     date: document.getElementById('purchaseDate').value,
@@ -654,60 +610,48 @@
                 this.reset();
                 document.getElementById('purchaseDate').value = getTodayISO();
                 showToast('🛒 Achat enregistré dans le registre !');
-            } catch(err) {
-                showToast('Erreur lors de la sauvegarde', false);
+            } catch (e) {
+                showToast('Erreur sauvegarde', false);
             } finally {
-                btn.disabled = false; btn.textContent = "Enregistrer l'achat";
+                btn.disabled = false;
+                btn.textContent = "Enregistrer l'achat";
             }
         });
 
-        // ─── SUPPRESSIONS (délégation d'événements + closest) ─────────────────
+        // SUPPRESSIONS (Délégation d'événements)
         document.getElementById('salesTableContainer').addEventListener('click', async (e) => {
-            const btn = e.target.closest('.btn-delete');
-            if (!btn) return;
-            if (!currentUser) { showToast('Session expirée, reconnectez-vous.', false); return; }
-            const id = btn.getAttribute('data-id');
-            if (!id) return;
-            confirmAction('Supprimer cette vente ?', async () => {
-                try {
+            if (e.target.classList.contains('btn-delete')) {
+                const id = e.target.getAttribute('data-id');
+                if (confirm('Supprimer cette vente ?')) {
                     await deleteDoc(doc(db, `users/${currentUser.uid}/sales`, id));
                     showToast('🗑️ Vente supprimée');
-                } catch(err) {
-                    showToast('Erreur lors de la suppression', false);
                 }
-            });
+            }
         });
 
         document.getElementById('purchasesTableContainer').addEventListener('click', async (e) => {
-            const btn = e.target.closest('.btn-delete');
-            if (!btn) return;
-            if (!currentUser) { showToast('Session expirée, reconnectez-vous.', false); return; }
-            const id = btn.getAttribute('data-id');
-            if (!id) return;
-            confirmAction("Supprimer cet achat du registre ?", async () => {
-                try {
+            if (e.target.classList.contains('btn-delete')) {
+                const id = e.target.getAttribute('data-id');
+                if (confirm('Supprimer cet achat du registre ?')) {
                     await deleteDoc(doc(db, `users/${currentUser.uid}/purchases`, id));
                     showToast('🗑️ Achat supprimé');
-                } catch(err) {
-                    showToast('Erreur lors de la suppression', false);
                 }
-            });
+            }
         });
 
-        // ─── MISE À JOUR AFFICHAGE ────────────────────────────────────────────
+        // MISE À JOUR AFFICHAGE
         function refreshUI() {
-            const sel = document.getElementById('monthFilter');
-            const filter = sel.value;
-
-            // Reconstruction du sélecteur de mois
+            const filter = document.getElementById('monthFilter').value;
             const allDates = [...salesData.map(s => s.date), ...purchasesData.map(p => p.date)];
-            const months = new Set(allDates.filter(d => /^\d{4}-\d{2}/.test(d)).map(d => d.substring(0,7)));
+            const months = new Set(allDates.map(d => typeof d === 'string' ? d.substring(0, 7) : '').filter(Boolean));
+
+            const sel = document.getElementById('monthFilter');
             const savedVal = sel.value;
-            sel.innerHTML = "<option value=\"\">Tout l'historique</option>";
+            sel.innerHTML = '<option value="">Tout l\'historique</option>';
             Array.from(months).sort().reverse().forEach(m => {
                 const [y, mo] = m.split('-');
                 if (y && mo) {
-                    const name = new Date(parseInt(y), parseInt(mo)-1)
+                    const name = new Date(parseInt(y), parseInt(mo) - 1)
                         .toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
                     const opt = document.createElement('option');
                     opt.value = m;
@@ -715,15 +659,19 @@
                     sel.appendChild(opt);
                 }
             });
-            if (savedVal && Array.from(months).includes(savedVal)) sel.value = savedVal;
+            if (savedVal && months.has(savedVal)) sel.value = savedVal;
 
-            // Filtrage (Firestore trie déjà par date desc — pas de re-tri JS)
-            const displaySales = filter ? salesData.filter(s => s.date.startsWith(filter)) : [...salesData];
-            const displayPurchases = filter ? purchasesData.filter(p => p.date.startsWith(filter)) : [...purchasesData];
+            const currentFilter = sel.value;
+            // FIX architecture #4 : tri superflu supprimé (Firestore déjà orderBy date desc)
+            const displaySales = currentFilter
+                ? salesData.filter(s => s.date && s.date.startsWith(currentFilter))
+                : [...salesData];
+            const displayPurchases = currentFilter
+                ? purchasesData.filter(p => p.date && p.date.startsWith(currentFilter))
+                : [...purchasesData];
 
-            // Calculs
-            const totalRev = displaySales.reduce((a, b) => a + b.price, 0);
-            const totalExp = displayPurchases.reduce((a, b) => a + b.amount, 0);
+            const totalRev = displaySales.reduce((a, b) => a + (b.price || 0), 0);
+            const totalExp = displayPurchases.reduce((a, b) => a + (b.amount || 0), 0);
             const profit = totalRev - totalExp;
 
             document.getElementById('totalRevenue').textContent = totalRev.toFixed(2) + '€';
@@ -731,75 +679,67 @@
             document.getElementById('netProfit').textContent = profit.toFixed(2) + '€';
             document.getElementById('totalCount').textContent = displaySales.length;
 
-            // Résumé URSSAF — via textContent uniquement (zéro innerHTML)
-            const labelEl = document.getElementById('monthlySummaryText');
-            const labelText = filter
-                ? `Montant URSSAF à déclarer pour ${sel.options[sel.selectedIndex]?.text ?? ''}`
+            // FIX sécurité #2 : textContent au lieu de innerHTML pour éviter XSS DOM
+            const labelURSSAF = currentFilter
+                ? `Montant URSSAF à déclarer pour ${sel.options[sel.selectedIndex]?.text || ''}`
                 : "Chiffre d'Affaires total généré";
-            // On met à jour le noeud texte avant le <span>
-            labelEl.firstChild.textContent = labelText + ' : ';
+            document.getElementById('urssafLabel').textContent = labelURSSAF;
             document.getElementById('urssafAmount').textContent = totalRev.toFixed(2) + '€';
 
-            // ── Tableau Ventes ──
+            // Tableau Ventes
             const tSales = document.getElementById('salesTableContainer');
             if (!displaySales.length) {
                 tSales.innerHTML = '<div class="empty-state">Aucune vente à afficher.</div>';
             } else {
-                let html = `<table>
-                    <thead><tr>
-                        <th scope="col">Date</th>
-                        <th scope="col">Produit</th>
-                        <th scope="col">Plateforme</th>
-                        <th scope="col">Prix</th>
-                        <th scope="col"><span class="sr-only">Actions</span></th>
-                    </tr></thead><tbody>`;
+                // FIX a11y #4 : scope="col" sur th, span sr-only sur th vide
+                // FIX sécurité #1 : formatDate valide le format + escapeHTML sur l'id
+                // FIX a11y #5 : aria-label avec le nom du produit
+                let html = '<table><thead><tr>' +
+                    '<th scope="col">Date</th>' +
+                    '<th scope="col">Produit</th>' +
+                    '<th scope="col">Plateforme</th>' +
+                    '<th scope="col">Prix</th>' +
+                    '<th scope="col"><span class="sr-only">Actions</span></th>' +
+                    '</tr></thead><tbody>';
                 displaySales.forEach(s => {
                     html += `<tr>
                         <td>${formatDate(s.date)}</td>
                         <td>${escapeHTML(s.product)}</td>
                         <td><span class="tag">${escapeHTML(s.platform)}</span></td>
-                        <td class="price-tag positive">+${s.price.toFixed(2)}€</td>
-                        <td class="text-right">
-                            <button type="button" class="btn-delete"
-                                data-id="${escapeHTML(s.id)}"
-                                aria-label="Supprimer la vente : ${escapeHTML(s.product)}">×</button>
-                        </td>
+                        <td class="price-tag positive">+${(s.price || 0).toFixed(2)}€</td>
+                        <td class="text-right"><button type="button" class="btn-delete" data-id="${escapeHTML(s.id)}" aria-label="Supprimer la vente : ${escapeHTML(s.product)}">×</button></td>
                     </tr>`;
                 });
                 tSales.innerHTML = html + '</tbody></table>';
             }
 
-            // ── Tableau Achats ──
+            // Tableau Achats
             const tPurchases = document.getElementById('purchasesTableContainer');
             if (!displayPurchases.length) {
                 tPurchases.innerHTML = '<div class="empty-state">Aucun achat enregistré.</div>';
             } else {
-                let html = `<table>
-                    <thead><tr>
-                        <th scope="col">Date</th>
-                        <th scope="col">Matériel</th>
-                        <th scope="col">Fournisseur</th>
-                        <th scope="col">Prix</th>
-                        <th scope="col"><span class="sr-only">Actions</span></th>
-                    </tr></thead><tbody>`;
+                let html = '<table><thead><tr>' +
+                    '<th scope="col">Date</th>' +
+                    '<th scope="col">Matériel</th>' +
+                    '<th scope="col">Fournisseur</th>' +
+                    '<th scope="col">Prix</th>' +
+                    '<th scope="col"><span class="sr-only">Actions</span></th>' +
+                    '</tr></thead><tbody>';
                 displayPurchases.forEach(p => {
                     html += `<tr>
                         <td>${formatDate(p.date)}</td>
                         <td>${escapeHTML(p.description)}</td>
                         <td><span class="tag">${escapeHTML(p.supplier)}</span></td>
-                        <td class="price-tag negative">-${p.amount.toFixed(2)}€</td>
-                        <td class="text-right">
-                            <button type="button" class="btn-delete"
-                                data-id="${escapeHTML(p.id)}"
-                                aria-label="Supprimer l'achat : ${escapeHTML(p.description)}">×</button>
-                        </td>
+                        <td class="price-tag negative">-${(p.amount || 0).toFixed(2)}€</td>
+                        <td class="text-right"><button type="button" class="btn-delete" data-id="${escapeHTML(p.id)}" aria-label="Supprimer l'achat : ${escapeHTML(p.description)}">×</button></td>
                     </tr>`;
                 });
                 tPurchases.innerHTML = html + '</tbody></table>';
             }
         }
 
-        // ─── INIT ─────────────────────────────────────────────────────────────
+        // INIT
+        // FIX architecture #2 : getTodayISO() au lieu de valueAsDate = new Date()
         document.getElementById('saleDate').value = getTodayISO();
         document.getElementById('purchaseDate').value = getTodayISO();
         document.getElementById('monthFilter').addEventListener('change', refreshUI);
