@@ -151,7 +151,6 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     } catch (err) {
         errorText.textContent = 'Identifiants incorrects.';
         btn.disabled = false;
-    } finally {
         btn.textContent = 'Se connecter';
     }
 });
@@ -223,10 +222,10 @@ document.getElementById('salesForm').addEventListener('submit', async function (
     const price    = document.getElementById('salePrice').valueAsNumber;
     const platform = document.getElementById('salePlatform').value;
 
-    if (!DATE_REGEX.test(date))                              { showToast('Date invalide', false); return; }
-    if (!product || product.length > 150)                    { showToast('Produit invalide', false); return; }
-    if (!isFinite(price) || price <= 0 || price > 99999.99) { showToast('Montant invalide', false); return; }
-    if (!VALID_PLATFORMS.includes(platform))                 { showToast('Plateforme invalide', false); return; }
+    if (!DATE_REGEX.test(date))                                { showToast('Date invalide', false); return; }
+    if (!product || product.length > 150)                      { showToast('Produit invalide', false); return; }
+    if (!isFinite(price) || price <= 0 || price > 99999.99)    { showToast('Montant invalide', false); return; }
+    if (!VALID_PLATFORMS.includes(platform))                   { showToast('Plateforme invalide', false); return; }
 
     const btn = this.querySelector('button[type="submit"]');
     btn.disabled = true;
@@ -258,11 +257,11 @@ document.getElementById('purchaseForm').addEventListener('submit', async functio
     const supplier      = document.getElementById('purchaseSupplier').value.trim();
     const paymentMethod = document.getElementById('purchasePayment').value;
 
-    if (!DATE_REGEX.test(date))                                { showToast('Date invalide', false); return; }
-    if (!description || description.length > 200)              { showToast('Description invalide', false); return; }
-    if (!isFinite(amount) || amount <= 0 || amount > 99999.99) { showToast('Montant invalide', false); return; }
-    if (!supplier || supplier.length > 100)                    { showToast('Fournisseur invalide', false); return; }
-    if (!VALID_PAYMENTS.includes(paymentMethod))               { showToast('Moyen de paiement invalide', false); return; }
+    if (!DATE_REGEX.test(date))                                  { showToast('Date invalide', false); return; }
+    if (!description || description.length > 200)                { showToast('Description invalide', false); return; }
+    if (!isFinite(amount) || amount <= 0 || amount > 99999.99)   { showToast('Montant invalide', false); return; }
+    if (!supplier || supplier.length > 100)                      { showToast('Fournisseur invalide', false); return; }
+    if (!VALID_PAYMENTS.includes(paymentMethod))                 { showToast('Moyen de paiement invalide', false); return; }
 
     const btn = this.querySelector('button[type="submit"]');
     btn.disabled = true;
@@ -359,6 +358,17 @@ function refreshUI() {
 
     if (savedVal && Array.from(months).includes(savedVal)) sel.value = savedVal;
 
+    // 1. STATISTIQUES GLOBALES TOUJOURS FIXES (Tout l'historique)
+    const globalRev = salesData.reduce((a, b) => a + (Number(b.price) || 0), 0);
+    const globalExp = purchasesData.reduce((a, b) => a + (Number(b.amount) || 0), 0);
+    const globalProfit = globalRev - globalExp;
+
+    document.getElementById('totalRevenue').textContent = globalRev.toFixed(2) + "€";
+    document.getElementById('totalPurchases').textContent = "- " + globalExp.toFixed(2) + "€";
+    document.getElementById('netProfit').textContent = globalProfit.toFixed(2) + "€";
+    document.getElementById('totalCount').textContent = salesData.length;
+
+    // 2. FILTRAGE POUR URSSAF ET TABLEAUX
     const effectiveFilter = sel.value;
 
     const displaySales = effectiveFilter
@@ -369,22 +379,17 @@ function refreshUI() {
         ? purchasesData.filter(p => p.date?.startsWith(effectiveFilter))
         : [...purchasesData];
 
-    const totalRev = displaySales.reduce((a, b) => a + (Number(b.price) || 0), 0);
-    const totalExp = displayPurchases.reduce((a, b) => a + (Number(b.amount) || 0), 0);
-    const profit = totalRev - totalExp;
-
-    document.getElementById('totalRevenue').textContent = totalRev.toFixed(2) + "€";
-    document.getElementById('totalPurchases').textContent = "- " + totalExp.toFixed(2) + "€";
-    document.getElementById('netProfit').textContent = profit.toFixed(2) + "€";
-    document.getElementById('totalCount').textContent = displaySales.length;
+    // 3. MONTANT URSSAF DYNAMIQUE (Selon le mois sélectionné)
+    const filteredRev = displaySales.reduce((a, b) => a + (Number(b.price) || 0), 0);
 
     const labelURSSAF = effectiveFilter
         ? `Montant URSSAF à déclarer pour ${sel.options[sel.selectedIndex]?.text}`
         : "Chiffre d'Affaires total généré";
 
     document.getElementById('urssafLabel').textContent = labelURSSAF;
-    document.getElementById('urssafAmount').textContent = totalRev.toFixed(2) + "€";
+    document.getElementById('urssafAmount').textContent = filteredRev.toFixed(2) + "€";
 
+    // 4. AFFICHAGE DES TABLEAUX DYNAMIQUES
     const tSales = document.getElementById('salesTableContainer');
     if (!displaySales.length) {
         tSales.innerHTML = `<div class="empty-state">Aucune vente à afficher.</div>`;
