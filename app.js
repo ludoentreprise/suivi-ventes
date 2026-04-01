@@ -144,7 +144,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     try {
         await signInWithEmailAndPassword(
             auth,
-            document.getElementById('email').value,
+            document.getElementById('email').value.trim(),
             document.getElementById('password').value
         );
         showToast('Connecté !');
@@ -223,11 +223,10 @@ document.getElementById('salesForm').addEventListener('submit', async function (
     const price    = document.getElementById('salePrice').valueAsNumber;
     const platform = document.getElementById('salePlatform').value;
 
-    // Validation stricte côté client avant envoi à Firestore
-    if (!DATE_REGEX.test(date))                         { showToast('Date invalide', false); return; }
-    if (!product || product.length > 150)               { showToast('Produit invalide', false); return; }
+    if (!DATE_REGEX.test(date))                              { showToast('Date invalide', false); return; }
+    if (!product || product.length > 150)                    { showToast('Produit invalide', false); return; }
     if (!isFinite(price) || price <= 0 || price > 99999.99) { showToast('Montant invalide', false); return; }
-    if (!VALID_PLATFORMS.includes(platform))            { showToast('Plateforme invalide', false); return; }
+    if (!VALID_PLATFORMS.includes(platform))                 { showToast('Plateforme invalide', false); return; }
 
     const btn = this.querySelector('button[type="submit"]');
     btn.disabled = true;
@@ -259,12 +258,11 @@ document.getElementById('purchaseForm').addEventListener('submit', async functio
     const supplier      = document.getElementById('purchaseSupplier').value.trim();
     const paymentMethod = document.getElementById('purchasePayment').value;
 
-    // Validation stricte côté client avant envoi à Firestore
-    if (!DATE_REGEX.test(date))                            { showToast('Date invalide', false); return; }
-    if (!description || description.length > 200)          { showToast('Description invalide', false); return; }
+    if (!DATE_REGEX.test(date))                                { showToast('Date invalide', false); return; }
+    if (!description || description.length > 200)              { showToast('Description invalide', false); return; }
     if (!isFinite(amount) || amount <= 0 || amount > 99999.99) { showToast('Montant invalide', false); return; }
-    if (!supplier || supplier.length > 100)                { showToast('Fournisseur invalide', false); return; }
-    if (!VALID_PAYMENTS.includes(paymentMethod))           { showToast('Moyen de paiement invalide', false); return; }
+    if (!supplier || supplier.length > 100)                    { showToast('Fournisseur invalide', false); return; }
+    if (!VALID_PAYMENTS.includes(paymentMethod))               { showToast('Moyen de paiement invalide', false); return; }
 
     const btn = this.querySelector('button[type="submit"]');
     btn.disabled = true;
