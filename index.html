@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudioJade - Ventes & Achats</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://www.gstatic.com; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://firestore.googleapis.com; font-src https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #000000;
+            --bg-card: #0a0a0a;
+            --bg-input: #171717;
+            --text-main: #e5e5e5;
+            --text-muted: #828282;
+            --border: #262626;
+            --primary: #e5e5e5;
+            --primary-hover: #ffffff;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #eab308;
+            --badge-bg: #262626;
+            --badge-text: #e5e5e5;
+            --radius: 8px;
+            --danger-alpha: rgba(239, 68, 68, 0.1);
+            --primary-alpha: rgba(229, 229, 229, 0.15);
+            --loader-track: #333333;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.5;
+            padding: 2rem 1rem;
+            min-height: 100vh;
+        }
+
+        .skip-link {
+            position: absolute; top: -100%; left: 1rem;
+            background: var(--primary); color: var(--bg-body);
+            padding: 0.5rem 1rem; border-radius: var(--radius);
+            z-index: 10001; text-decoration: none; font-weight: bold;
+        }
+        .skip-link:focus { top: 1rem; }
+
+        .container { max-width: 1200px; margin: 0 auto; display: none; }
+
+        .sr-only {
+            position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+            overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0;
+        }
+
+        .mt-1 { margin-top: 1rem; }
+        .mt-2 { margin-top: 2rem; }
+        .text-danger { color: var(--danger); font-size: 0.875rem; }
+        .text-success { color: var(--success); }
+        .text-warning { color: var(--warning); }
+        .max-w-300 { max-width: 300px; }
+        .text-right { text-align: right; }
+
+        #auth-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-body);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 9999; padding: 20px;
+        }
+        .auth-card {
+            background: var(--bg-card); padding: 2.5rem; border-radius: 16px;
+            border: 1px solid var(--border); width: 100%; max-width: 400px; text-align: center;
+        }
+        .auth-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 2rem; color: var(--text-main); }
+
+        header { margin-bottom: 2rem; text-align: center; position: relative; }
+        h1 { font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem; letter-spacing: -0.05em; }
+
+        .btn-logout {
+            position: absolute; right: 0; top: 0;
+            background: transparent; border: 1px solid var(--border); color: var(--text-muted);
+            padding: 0.5rem 1rem; font-size: 0.8rem; border-radius: var(--radius); cursor: pointer;
+            transition: border-color 0.2s ease, color 0.2s ease;
+        }
+        .btn-logout:hover:not(:disabled) { border-color: var(--danger); color: var(--danger); }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card {
+            background: var(--bg-card); padding: 1.5rem; border-radius: var(--radius);
+            border: 1px solid var(--border); display: flex; flex-direction: column;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        .stat-card:hover { border-color: var(--text-muted); transform: translateY(-2px); }
+        .stat-label { font-size: 0.875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+        .stat-value { font-size: 2rem; font-weight: 700; color: var(--text-main); letter-spacing: -0.05em; margin: 0; }
+        .stat-value.money { color: var(--success); }
+        .stat-value.expense { color: var(--danger); }
+        .stat-value.profit { color: var(--primary); }
+
+        .forms-container { display: grid; grid-template-columns: 1fr; gap: 2rem; margin-bottom: 2rem; }
+        @media (min-width: 900px) { .forms-container { grid-template-columns: 1fr 1fr; } }
+
+        .card { background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border); padding: 2rem; }
+        .card-sales { border-top: 4px solid var(--success); }
+        .card-purchases { border-top: 4px solid var(--warning); }
+
+        .section-header { margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; }
+        .card-title { font-size: 1.25rem; font-weight: 700; color: var(--text-main); }
+        .card-title.ventes { color: var(--success); }
+        .card-title.achats { color: var(--warning); }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+        .form-group { display: flex; flex-direction: column; gap: 0.5rem; text-align: left; }
+        .form-group.full-width { grid-column: 1 / -1; }
+
+        label { font-size: 0.875rem; font-weight: 500; color: var(--text-muted); }
+
+        input, select {
+            padding: 0.75rem; background-color: var(--bg-input); border: 1px solid var(--border);
+            border-radius: var(--radius); font-size: 1rem; color: var(--text-main);
+            font-family: inherit; width: 100%;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        input:focus, select:focus { outline: none; }
+        input:focus-visible, select:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+            box-shadow: 0 0 0 4px var(--primary-alpha);
+            border-color: transparent;
+        }
+        button:focus:not(:focus-visible) { outline: none; }
+        button:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+            box-shadow: 0 0 0 4px var(--primary-alpha);
+        }
+
+        ::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.6; cursor: pointer; }
+
+        select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23828282' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            padding-right: 2.5rem;
+        }
+
+        .button-group { display: flex; gap: 1rem; }
+        .button-group button { flex: 1; }
+        .button-group-vertical { display: flex; flex-direction: column; gap: 1rem; }
+        .button-group-vertical button { width: 100%; }
+
+        button {
+            padding: 0.75rem 1.5rem; border-radius: var(--radius); font-weight: 600;
+            font-size: 0.95rem; cursor: pointer; border: none;
+            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        }
+        button:disabled { opacity: 0.7; cursor: not-allowed; }
+
+        .btn-primary { background-color: var(--success); color: var(--bg-body); }
+        .btn-primary:hover:not(:disabled) { background-color: #16a34a; transform: translateY(-1px); }
+
+        .btn-primary-alt { background-color: var(--primary); color: var(--bg-body); }
+        .btn-primary-alt:hover:not(:disabled) { background-color: var(--primary-hover); transform: translateY(-1px); }
+
+        .btn-warning { background-color: var(--warning); color: var(--bg-body); }
+        .btn-warning:hover:not(:disabled) { background-color: #ca8a04; transform: translateY(-1px); }
+
+        .btn-export {
+            background: transparent; border: 1px solid var(--border); color: var(--text-muted);
+            padding: 0.4rem 0.9rem; font-size: 0.8rem; border-radius: var(--radius); cursor: pointer;
+            transition: border-color 0.2s ease, color 0.2s ease;
+            white-space: nowrap;
+        }
+        .btn-export:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+
+        .history-card { margin-top: 2rem; }
+        .filter-wrapper { background: var(--bg-input); padding: 1.5rem; border-radius: var(--radius); margin-bottom: 1.5rem; border: 1px solid var(--border); }
+        .monthly-highlight { font-weight: 700; color: var(--text-main); font-size: 1.1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+
+        .tables-grid { display: grid; grid-template-columns: 1fr; gap: 2rem; }
+        @media (min-width: 900px) { .tables-grid { grid-template-columns: 1fr 1fr; } }
+
+        .table-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem; }
+        .table-title { margin: 0; font-size: 1rem; }
+
+        .table-responsive {
+            overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border);
+            max-height: min(400px, 50vh); overflow-y: auto;
+        }
+
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem; }
+        th {
+            position: sticky; top: 0; padding: 1rem; background-color: var(--bg-card);
+            font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem;
+            letter-spacing: 0.05em; border-bottom: 1px solid var(--border); z-index: 10;
+        }
+        td { padding: 1rem; border-bottom: 1px solid var(--border); color: var(--text-main); }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background-color: var(--bg-input); }
+
+        .tag {
+            display: inline-flex; align-items: center; padding: 0.25rem 0.75rem; border-radius: 99px;
+            font-size: 0.75rem; font-weight: 600; background-color: var(--badge-bg); color: var(--badge-text); border: 1px solid var(--border);
+        }
+        .price-tag { font-family: 'Courier New', monospace; font-weight: 700; }
+        .price-tag.positive { color: var(--success); }
+        .price-tag.negative { color: var(--danger); }
+
+        .btn-delete {
+            background-color: transparent; border: 1px solid var(--border); color: var(--danger);
+            padding: 0.4rem 0.8rem; font-size: 0.9rem; border-radius: var(--radius); cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease; line-height: 1;
+        }
+        .btn-delete:hover:not(:disabled) { background-color: var(--danger-alpha); border-color: var(--danger); }
+
+        .empty-state { padding: 3rem; text-align: center; color: var(--text-muted); }
+
+        .toast {
+            visibility: hidden; min-width: 250px; background-color: var(--bg-input); color: var(--text-main);
+            text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 10000;
+            left: 50%; bottom: 30px; transform: translateX(-50%); border: 1px solid var(--success);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5); font-weight: 500; opacity: 0;
+            transition: opacity 0.3s, bottom 0.3s;
+        }
+        .toast.show { visibility: visible; opacity: 1; bottom: 50px; }
+
+        .loader {
+            border: 3px solid var(--loader-track); border-top: 3px solid var(--text-main); border-radius: 50%;
+            width: 20px; height: 20px; animation: spin 1s linear infinite;
+            display: inline-block; margin-right: 10px; vertical-align: middle;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        @media (prefers-reduced-motion: reduce) {
+            button { transition: none; }
+            .btn-primary:hover:not(:disabled),
+            .btn-primary-alt:hover:not(:disabled),
+            .btn-warning:hover:not(:disabled) { transform: none; }
+            .loader { animation: none; border-style: dashed; opacity: 0.6; }
+            .stat-card { transition: none; }
+            .stat-card:hover { transform: none; }
+            .toast { transition: none; }
+            input, select { transition: none; }
+        }
+
+        @media (max-width: 640px) {
+            h1 { font-size: 1.5rem; }
+            .form-grid { grid-template-columns: 1fr; }
+            th, td { padding: 0.75rem; }
+            .button-group { flex-direction: column; }
+            .btn-logout { position: relative; display: block; width: 100%; margin-bottom: 1rem; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <a href="#app-container" class="skip-link" id="skipLink">Aller au contenu principal</a>
+
+    <div id="auth-screen">
+        <div class="auth-card">
+            <h2 class="auth-title"><span aria-hidden="true">🔐</span> Connexion StudioJade</h2>
+            <form id="loginForm" novalidate>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" autocomplete="email" placeholder="votre@email.com" required>
+                </div>
+                <div class="form-group mt-1">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" autocomplete="current-password" placeholder="••••••" required>
+                </div>
+                <div class="button-group-vertical mt-2">
+                    <button type="submit" class="btn-primary-alt" id="btnLogin">Se connecter</button>
+                </div>
+                <p id="auth-error" class="text-danger mt-1" role="alert" aria-live="assertive"></p>
+            </form>
+        </div>
+    </div>
+
+    <main class="container" id="app-container" tabindex="-1">
+        <header>
+            <h1><span aria-hidden="true">✨</span> StudioJade - Ventes &amp; Achats</h1>
+            <button type="button" class="btn-logout" id="btnLogout">Se déconnecter</button>
+        </header>
+
+        <section class="stats-grid" aria-label="Statistiques financières">
+            <dl class="stat-card">
+                <dt class="stat-label">Chiffre d'Affaires (URSSAF)</dt>
+                <dd class="stat-value money" id="totalRevenue">0.00€</dd>
+            </dl>
+            <dl class="stat-card">
+                <dt class="stat-label">Achats &amp; Frais</dt>
+                <dd class="stat-value expense" id="totalPurchases">- 0.00€</dd>
+            </dl>
+            <dl class="stat-card">
+                <dt class="stat-label">Bénéfice Réel</dt>
+                <dd class="stat-value profit" id="netProfit">0.00€</dd>
+            </dl>
+            <dl class="stat-card">
+                <dt class="stat-label">Ventes Réalisées</dt>
+                <dd class="stat-value" id="totalCount">0</dd>
+            </dl>
+        </section>
+
+        <section class="forms-container" aria-label="Formulaires de saisie">
+            <div class="card card-sales">
+                <div class="section-header">
+                    <h2 class="card-title ventes"><span aria-hidden="true">➕</span> Nouvelle Vente</h2>
+                </div>
+                <form id="salesForm">
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label for="saleProduct">Produit vendu</label>
+                            <input type="text" id="saleProduct" placeholder="Ex: Collier Jade Étoile..." maxlength="150" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="saleDate">Date</label>
+                            <input type="date" id="saleDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="salePrice">Montant Brut (€)</label>
+                            <input type="number" id="salePrice" placeholder="0.00" step="0.01" min="0.01" max="99999.99" required>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="salePlatform">Plateforme</label>
+                            <select id="salePlatform" required>
+                                <option value="">Choisir...</option>
+                                <option value="Vinted">Vinted</option>
+                                <option value="Etsy">Etsy</option>
+                                <option value="Direct">Vente Directe</option>
+                                <option value="LeBonCoin">LeBonCoin</option>
+                                <option value="Autre">Autre</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="button-group">
+                        <button type="submit" class="btn-primary">Enregistrer la vente</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card card-purchases">
+                <div class="section-header">
+                    <h2 class="card-title achats"><span aria-hidden="true">🛒</span> Nouvel Achat (Dépense)</h2>
+                </div>
+                <form id="purchaseForm">
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label for="purchaseDesc">Description du matériel</label>
+                            <input type="text" id="purchaseDesc" placeholder="Ex: Lot de perles, Enveloppes bulles..." maxlength="200" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="purchaseDate">Date</label>
+                            <input type="date" id="purchaseDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="purchaseAmount">Montant TTC (€)</label>
+                            <input type="number" id="purchaseAmount" placeholder="0.00" step="0.01" min="0.01" max="99999.99" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="purchaseSupplier">Fournisseur</label>
+                            <input type="text" id="purchaseSupplier" placeholder="Ex: Temu, La Poste..." maxlength="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="purchasePayment">Moyen de paiement</label>
+                            <select id="purchasePayment" required>
+                                <option value="Carte Bancaire">Carte Bancaire</option>
+                                <option value="PayPal">PayPal</option>
+                                <option value="Espèces">Espèces</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="button-group">
+                        <button type="submit" class="btn-warning">Enregistrer l'achat</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <section class="card history-card" aria-label="Registres et historique">
+            <div class="section-header">
+                <h2 class="card-title"><span aria-hidden="true">📋</span> Registres Officiels &amp; Déclaration URSSAF</h2>
+            </div>
+
+            <div class="filter-wrapper">
+                <div class="form-group max-w-300">
+                    <label for="monthFilter"><span aria-hidden="true">📅</span> Filtrer par mois</label>
+                    <select id="monthFilter">
+                        <option value="">Tout l'historique</option>
+                    </select>
+                </div>
+                <div class="monthly-highlight">
+                    <span id="urssafLabel">Montant à déclarer à l'URSSAF</span> : <strong class="text-success" id="urssafAmount">0.00€</strong>
+                </div>
+            </div>
+
+            <div class="tables-grid">
+                <div>
+                    <div class="table-header">
+                        <h3 class="table-title text-success"><span aria-hidden="true">🟢</span> Livre des Recettes (Ventes)</h3>
+                        <button type="button" class="btn-export" id="btnExportSales" aria-label="Exporter les ventes en CSV">
+                            <span aria-hidden="true">⬇</span> Export CSV
+                        </button>
+                    </div>
+                    <div class="table-responsive" id="salesTableContainer">
+                        <div class="empty-state" role="status" aria-label="Chargement des ventes en cours">
+                            <div class="loader" aria-hidden="true"></div><span>Chargement...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="table-header">
+                        <h3 class="table-title text-warning"><span aria-hidden="true">🟡</span> Registre des Achats (Dépenses)</h3>
+                        <button type="button" class="btn-export" id="btnExportPurchases" aria-label="Exporter les achats en CSV">
+                            <span aria-hidden="true">⬇</span> Export CSV
+                        </button>
+                    </div>
+                    <div class="table-responsive" id="purchasesTableContainer">
+                        <div class="empty-state" role="status" aria-label="Chargement des achats en cours">
+                            <div class="loader" aria-hidden="true"></div><span>Chargement...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="toast" class="toast" aria-live="polite" aria-atomic="true"></div>
+    <div id="tableAnnouncer" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
