@@ -161,6 +161,17 @@
         .btn-warning { background-color: var(--warning); color: #000000; }
         .btn-warning:hover { background-color: #ca8a04; transform: translateY(-1px); }
 
+        /* Styles pour les boutons d'export */
+        .table-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem; }
+        .table-title { font-size: 1rem; margin: 0; }
+        .btn-export {
+            background: transparent; border: 1px solid var(--border); color: var(--text-muted);
+            padding: 0.4rem 0.9rem; font-size: 0.8rem; border-radius: var(--radius); cursor: pointer;
+            transition: border-color 0.2s ease, color 0.2s ease;
+            white-space: nowrap;
+        }
+        .btn-export:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
@@ -178,7 +189,6 @@
         @media (min-width: 900px) { .tables-grid { grid-template-columns: 1fr 1fr; } }
 
         .table-responsive { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); max-height: min(400px, 50vh); overflow-y: auto; }
-        .table-title { margin-bottom: 1rem; font-size: 1rem; }
 
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem; }
         th {
@@ -239,7 +249,7 @@
 </head>
 <body>
 
-    <a href="#app-container" class="skip-link">Aller au contenu principal</a>
+    <a href="#app-container" class="skip-link" id="skipLink">Aller au contenu principal</a>
 
     <div id="auth-screen" role="main">
         <div class="auth-card">
@@ -380,7 +390,12 @@
 
             <div class="tables-grid">
                 <div>
-                    <h3 class="table-title text-success"><span aria-hidden="true">🟢</span> Livre des Recettes (Ventes)</h3>
+                    <div class="table-header">
+                        <h3 class="table-title text-success"><span aria-hidden="true">🟢</span> Livre des Recettes (Ventes)</h3>
+                        <button type="button" class="btn-export" id="btnExportSales" aria-label="Exporter les ventes en CSV">
+                            <span aria-hidden="true">⬇</span> Export CSV
+                        </button>
+                    </div>
                     <div class="table-responsive" id="salesTableContainer">
                         <div class="empty-state" role="status" aria-label="Chargement des ventes en cours">
                             <div class="loader" aria-hidden="true"></div>Chargement...
@@ -389,7 +404,12 @@
                 </div>
 
                 <div>
-                    <h3 class="table-title text-warning"><span aria-hidden="true">🟡</span> Registre des Achats (Dépenses)</h3>
+                    <div class="table-header">
+                        <h3 class="table-title text-warning"><span aria-hidden="true">🟡</span> Registre des Achats (Dépenses)</h3>
+                        <button type="button" class="btn-export" id="btnExportPurchases" aria-label="Exporter les achats en CSV">
+                            <span aria-hidden="true">⬇</span> Export CSV
+                        </button>
+                    </div>
                     <div class="table-responsive" id="purchasesTableContainer">
                         <div class="empty-state" role="status" aria-label="Chargement des achats en cours">
                             <div class="loader" aria-hidden="true"></div>Chargement...
