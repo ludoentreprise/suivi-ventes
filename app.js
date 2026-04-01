@@ -15,6 +15,10 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+const VALID_PLATFORMS = ['Vinted', 'Etsy', 'Direct', 'LeBonCoin', 'Autre'];
+const VALID_PAYMENTS  = ['Carte Bancaire', 'PayPal', 'Espèces'];
+
 let currentUser = null;
 let salesData = [];
 let purchasesData = [];
@@ -36,7 +40,7 @@ const escapeHTML = (str) => {
 };
 
 function formatDate(dateString) {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return escapeHTML(String(dateString));
+    if (!DATE_REGEX.test(dateString)) return escapeHTML(String(dateString));
     const [y, m, d] = dateString.split('-');
     const dateObj = new Date(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(d, 10));
     if (isNaN(dateObj.getTime())) return escapeHTML(dateString);
@@ -214,19 +218,26 @@ document.getElementById('salesForm').addEventListener('submit', async function (
     e.preventDefault();
     if (!currentUser) return;
 
+    const date     = document.getElementById('saleDate').value;
+    const product  = document.getElementById('saleProduct').value.trim();
+    const price    = document.getElementById('salePrice').valueAsNumber;
+    const platform = document.getElementById('salePlatform').value;
+
+    // Validation stricte côté client avant envoi à Firestore
+    if (!DATE_REGEX.test(date))                         { showToast('Date invalide', false); return; }
+    if (!product || product.length > 150)               { showToast('Produit invalide', false); return; }
+    if (!isFinite(price) || price <= 0 || price > 99999.99) { showToast('Montant invalide', false); return; }
+    if (!VALID_PLATFORMS.includes(platform))            { showToast('Plateforme invalide', false); return; }
+
     const btn = this.querySelector('button[type="submit"]');
     btn.disabled = true;
     btn.textContent = 'Enregistrement...';
 
     try {
         await addDoc(collection(db, `users/${currentUser.uid}/sales`), {
-            date: document.getElementById('saleDate').value,
-            product: document.getElementById('saleProduct').value.trim(),
-            price: document.getElementById('salePrice').valueAsNumber,
-            platform: document.getElementById('salePlatform').value,
+            date, product, price, platform,
             createdAt: serverTimestamp()
         });
-
         this.reset();
         document.getElementById('saleDate').value = getTodayISO();
         showToast('Vente enregistrée !');
@@ -242,20 +253,28 @@ document.getElementById('purchaseForm').addEventListener('submit', async functio
     e.preventDefault();
     if (!currentUser) return;
 
+    const date          = document.getElementById('purchaseDate').value;
+    const description   = document.getElementById('purchaseDesc').value.trim();
+    const amount        = document.getElementById('purchaseAmount').valueAsNumber;
+    const supplier      = document.getElementById('purchaseSupplier').value.trim();
+    const paymentMethod = document.getElementById('purchasePayment').value;
+
+    // Validation stricte côté client avant envoi à Firestore
+    if (!DATE_REGEX.test(date))                            { showToast('Date invalide', false); return; }
+    if (!description || description.length > 200)          { showToast('Description invalide', false); return; }
+    if (!isFinite(amount) || amount <= 0 || amount > 99999.99) { showToast('Montant invalide', false); return; }
+    if (!supplier || supplier.length > 100)                { showToast('Fournisseur invalide', false); return; }
+    if (!VALID_PAYMENTS.includes(paymentMethod))           { showToast('Moyen de paiement invalide', false); return; }
+
     const btn = this.querySelector('button[type="submit"]');
     btn.disabled = true;
     btn.textContent = 'Enregistrement...';
 
     try {
         await addDoc(collection(db, `users/${currentUser.uid}/purchases`), {
-            date: document.getElementById('purchaseDate').value,
-            description: document.getElementById('purchaseDesc').value.trim(),
-            amount: document.getElementById('purchaseAmount').valueAsNumber,
-            supplier: document.getElementById('purchaseSupplier').value.trim(),
-            paymentMethod: document.getElementById('purchasePayment').value,
+            date, description, amount, supplier, paymentMethod,
             createdAt: serverTimestamp()
         });
-
         this.reset();
         document.getElementById('purchaseDate').value = getTodayISO();
         showToast('Achat enregistré dans le registre !');
