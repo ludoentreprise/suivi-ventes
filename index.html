@@ -2,10 +2,9 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.firestore.googleapis.com; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none';">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex, nofollow">
-    <title>StudioJade - Ventes &amp; Achats</title>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' https://www.gstatic.com; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://firestore.googleapis.com https://www.gstatic.com; font-src https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data:;">
+    <title>StudioJade - Ventes & Achats</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -25,9 +24,6 @@
             --badge-bg: #262626;
             --badge-text: #e5e5e5;
             --radius: 8px;
-            --danger-alpha: rgba(239, 68, 68, 0.1);
-            --primary-alpha: rgba(229, 229, 229, 0.15);
-            --loader-track: #333333;
         }
 
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -41,29 +37,33 @@
             min-height: 100vh;
         }
 
+        /* Skip link accessibilité */
         .skip-link {
             position: absolute; top: -100%; left: 1rem;
-            background: var(--primary); color: var(--bg-body);
+            background: var(--bg-card); color: var(--text-main);
             padding: 0.5rem 1rem; border-radius: var(--radius);
-            z-index: 10001; text-decoration: none; font-weight: bold;
+            z-index: 10000; text-decoration: none; border: 1px solid var(--border);
         }
         .skip-link:focus { top: 1rem; }
 
-        .container { max-width: 1200px; margin: 0 auto; display: none; }
-
+        /* Classe utilitaire lecteur d'écran */
         .sr-only {
             position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
-            overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0;
+            overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border-width: 0;
         }
 
+        .container { max-width: 1200px; margin: 0 auto; display: none; }
+
+        /* --- UTILITAIRES --- */
         .mt-1 { margin-top: 1rem; }
         .mt-2 { margin-top: 2rem; }
-        .text-danger { color: var(--danger); font-size: 0.875rem; }
+        .text-danger { color: var(--danger); font-size: 0.9rem; }
         .text-success { color: var(--success); }
         .text-warning { color: var(--warning); }
         .max-w-300 { max-width: 300px; }
         .text-right { text-align: right; }
 
+        /* --- LOGIN --- */
         #auth-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: var(--bg-body);
@@ -76,6 +76,7 @@
         }
         .auth-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 2rem; color: var(--text-main); }
 
+        /* HEADER */
         header { margin-bottom: 2rem; text-align: center; position: relative; }
         h1 { font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem; letter-spacing: -0.05em; }
 
@@ -85,8 +86,9 @@
             padding: 0.5rem 1rem; font-size: 0.8rem; border-radius: var(--radius); cursor: pointer;
             transition: border-color 0.2s ease, color 0.2s ease;
         }
-        .btn-logout:hover:not(:disabled) { border-color: var(--danger); color: var(--danger); }
+        .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
 
+        /* STATS */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
         .stat-card {
             background: var(--bg-card); padding: 1.5rem; border-radius: var(--radius);
@@ -95,19 +97,28 @@
         }
         .stat-card:hover { border-color: var(--text-muted); transform: translateY(-2px); }
         .stat-label { font-size: 0.875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
-        .stat-value { font-size: 2rem; font-weight: 700; color: var(--text-main); letter-spacing: -0.05em; margin: 0; }
+        .stat-value { font-size: 2rem; font-weight: 700; color: var(--text-main); letter-spacing: -0.05em; }
         .stat-value.money { color: var(--success); }
         .stat-value.expense { color: var(--danger); }
         .stat-value.profit { color: var(--primary); }
 
-        .forms-container { display: grid; grid-template-columns: 1fr; gap: 2rem; margin-bottom: 2rem; }
-        @media (min-width: 900px) { .forms-container { grid-template-columns: 1fr 1fr; } }
+        /* LAYOUT FORMS */
+        .forms-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        @media (min-width: 900px) {
+            .forms-container { grid-template-columns: 1fr 1fr; }
+        }
 
+        /* CARDS & FORMS */
         .card { background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border); padding: 2rem; }
         .card-sales { border-top: 4px solid var(--success); }
         .card-purchases { border-top: 4px solid var(--warning); }
 
-        .section-header { margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; }
+        .section-header { margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
         .card-title { font-size: 1.25rem; font-weight: 700; color: var(--text-main); }
         .card-title.ventes { color: var(--success); }
         .card-title.achats { color: var(--warning); }
@@ -121,25 +132,17 @@
         input, select {
             padding: 0.75rem; background-color: var(--bg-input); border: 1px solid var(--border);
             border-radius: var(--radius); font-size: 1rem; color: var(--text-main);
-            font-family: inherit; width: 100%;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            font-family: inherit; width: 100%; transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
-        input:focus, select:focus { outline: none; }
         input:focus-visible, select:focus-visible {
             outline: 2px solid var(--primary);
             outline-offset: 2px;
-            box-shadow: 0 0 0 4px var(--primary-alpha);
-            border-color: transparent;
+            border-color: var(--text-main);
+            box-shadow: 0 0 0 4px rgba(229,229,229,0.15);
         }
-        button:focus:not(:focus-visible) { outline: none; }
-        button:focus-visible {
-            outline: 2px solid var(--primary);
-            outline-offset: 2px;
-            box-shadow: 0 0 0 4px var(--primary-alpha);
-        }
+        input:focus, select:focus { outline: none; border-color: var(--text-main); }
 
-        ::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.6; cursor: pointer; }
-
+        /* Fix select natif iOS/Android */
         select {
             -webkit-appearance: none;
             -moz-appearance: none;
@@ -150,35 +153,36 @@
             padding-right: 2.5rem;
         }
 
+        ::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.6; cursor: pointer; }
+
         .button-group { display: flex; gap: 1rem; }
-        .button-group button { flex: 1; }
         .button-group-vertical { display: flex; flex-direction: column; gap: 1rem; }
-        .button-group-vertical button { width: 100%; }
 
         button {
             padding: 0.75rem 1.5rem; border-radius: var(--radius); font-weight: 600;
             font-size: 0.95rem; cursor: pointer; border: none;
             transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
         }
-        button:disabled { opacity: 0.7; cursor: not-allowed; }
+        .button-group button { flex: 1; }
+        .button-group-vertical button { width: 100%; }
 
-        .btn-primary { background-color: var(--success); color: var(--bg-body); }
-        .btn-primary:hover:not(:disabled) { background-color: #16a34a; transform: translateY(-1px); }
+        .btn-primary { background-color: var(--success); color: #000000; }
+        .btn-primary:hover { background-color: #16a34a; transform: translateY(-1px); }
+        .btn-primary-alt { background-color: var(--primary); color: #000000; }
+        .btn-primary-alt:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+        .btn-warning { background-color: var(--warning); color: #000000; }
+        .btn-warning:hover { background-color: #ca8a04; transform: translateY(-1px); }
 
-        .btn-primary-alt { background-color: var(--primary); color: var(--bg-body); }
-        .btn-primary-alt:hover:not(:disabled) { background-color: var(--primary-hover); transform: translateY(-1px); }
-
-        .btn-warning { background-color: var(--warning); color: var(--bg-body); }
-        .btn-warning:hover:not(:disabled) { background-color: #ca8a04; transform: translateY(-1px); }
-
-        .btn-export {
-            background: transparent; border: 1px solid var(--border); color: var(--text-muted);
-            padding: 0.4rem 0.9rem; font-size: 0.8rem; border-radius: var(--radius); cursor: pointer;
-            transition: border-color 0.2s ease, color 0.2s ease;
-            white-space: nowrap;
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            .btn-primary:hover, .btn-primary-alt:hover, .btn-warning:hover { transform: none; }
         }
-        .btn-export:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
 
+        /* TABLE */
         .history-card { margin-top: 2rem; }
         .filter-wrapper { background: var(--bg-input); padding: 1.5rem; border-radius: var(--radius); margin-bottom: 1.5rem; border: 1px solid var(--border); }
         .monthly-highlight { font-weight: 700; color: var(--text-main); font-size: 1.1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
@@ -186,13 +190,8 @@
         .tables-grid { display: grid; grid-template-columns: 1fr; gap: 2rem; }
         @media (min-width: 900px) { .tables-grid { grid-template-columns: 1fr 1fr; } }
 
-        .table-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem; }
-        .table-title { margin: 0; font-size: 1rem; }
-
-        .table-responsive {
-            overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border);
-            max-height: min(400px, 50vh); overflow-y: auto;
-        }
+        .table-responsive { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); max-height: min(400px, 50vh); overflow-y: auto; }
+        .table-title { margin-bottom: 1rem; font-size: 1rem; }
 
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem; }
         th {
@@ -214,16 +213,16 @@
 
         .btn-delete {
             background-color: transparent; border: 1px solid var(--border); color: var(--danger);
-            padding: 0.4rem 0.8rem; font-size: 0.9rem; border-radius: var(--radius); cursor: pointer;
+            padding: 0.4rem 0.8rem; font-size: 0.9rem; border-radius: 4px; cursor: pointer;
             transition: background-color 0.2s ease, border-color 0.2s ease; line-height: 1;
         }
-        .btn-delete:hover:not(:disabled) { background-color: var(--danger-alpha); border-color: var(--danger); }
-
+        .btn-delete:hover { background-color: rgba(239,68,68,0.1); border-color: var(--danger); }
         .empty-state { padding: 3rem; text-align: center; color: var(--text-muted); }
 
+        /* TOAST & LOADER */
         .toast {
             visibility: hidden; min-width: 250px; background-color: var(--bg-input); color: var(--text-main);
-            text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 10000;
+            text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 100;
             left: 50%; bottom: 30px; transform: translateX(-50%); border: 1px solid var(--success);
             box-shadow: 0 4px 12px rgba(0,0,0,0.5); font-weight: 500; opacity: 0;
             transition: opacity 0.3s, bottom 0.3s;
@@ -231,23 +230,19 @@
         .toast.show { visibility: visible; opacity: 1; bottom: 50px; }
 
         .loader {
-            border: 3px solid var(--loader-track); border-top: 3px solid var(--text-main); border-radius: 50%;
-            width: 20px; height: 20px; animation: spin 1s linear infinite;
-            display: inline-block; margin-right: 10px; vertical-align: middle;
+            border: 3px solid #333; border-top: 3px solid var(--text-main);
+            border-radius: 50%; width: 20px; height: 20px;
+            animation: spin 1s linear infinite; display: inline-block; margin-right: 10px;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .loader { animation: none; border-style: dashed; opacity: 0.6; }
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        @media (prefers-reduced-motion: reduce) {
-            button { transition: none; }
-            .btn-primary:hover:not(:disabled),
-            .btn-primary-alt:hover:not(:disabled),
-            .btn-warning:hover:not(:disabled) { transform: none; }
-            .loader { animation: none; border-style: dashed; opacity: 0.6; }
-            .stat-card { transition: none; }
-            .stat-card:hover { transform: none; }
-            .toast { transition: none; }
-            input, select { transition: none; }
-        }
+        /* dl/dt/dd pour les stats cards */
+        dl.stat-card { display: flex; flex-direction: column; }
+        dl.stat-card dt { font-size: 0.875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+        dl.stat-card dd { font-size: 2rem; font-weight: 700; color: var(--text-main); letter-spacing: -0.05em; margin: 0; }
 
         @media (max-width: 640px) {
             h1 { font-size: 1.5rem; }
@@ -259,9 +254,11 @@
     </style>
 </head>
 <body>
-    <a href="#app-container" class="skip-link" id="skipLink">Aller au contenu principal</a>
 
-    <div id="auth-screen">
+    <!-- Skip link accessibilité clavier -->
+    <a href="#app-container" class="skip-link">Aller au contenu principal</a>
+
+    <div id="auth-screen" role="main">
         <div class="auth-card">
             <h2 class="auth-title"><span aria-hidden="true">🔐</span> Connexion StudioJade</h2>
             <form id="loginForm" novalidate>
@@ -276,18 +273,18 @@
                 <div class="button-group-vertical mt-2">
                     <button type="submit" class="btn-primary-alt" id="btnLogin">Se connecter</button>
                 </div>
-                <p id="auth-error" class="text-danger mt-1" role="alert" aria-live="assertive"></p>
             </form>
+            <p id="auth-error" class="text-danger mt-1" role="alert" aria-live="assertive"></p>
         </div>
     </div>
 
-    <main class="container" id="app-container" tabindex="-1">
+    <main class="container" id="app-container">
         <header>
             <h1><span aria-hidden="true">✨</span> StudioJade - Ventes &amp; Achats</h1>
-            <button type="button" class="btn-logout" id="btnLogout">Se déconnecter</button>
+            <button class="btn-logout" id="btnLogout">Se déconnecter</button>
         </header>
 
-        <section class="stats-grid" aria-label="Statistiques financières">
+        <section aria-label="Statistiques générales" class="stats-grid">
             <dl class="stat-card">
                 <dt class="stat-label">Chiffre d'Affaires (URSSAF)</dt>
                 <dd class="stat-value money" id="totalRevenue">0.00€</dd>
@@ -306,16 +303,16 @@
             </dl>
         </section>
 
-        <section class="forms-container" aria-label="Formulaires de saisie">
+        <section class="forms-container" aria-label="Saisie des opérations">
             <div class="card card-sales">
                 <div class="section-header">
                     <h2 class="card-title ventes"><span aria-hidden="true">➕</span> Nouvelle Vente</h2>
                 </div>
-                <form id="salesForm">
+                <form id="salesForm" novalidate>
                     <div class="form-grid">
                         <div class="form-group full-width">
                             <label for="saleProduct">Produit vendu</label>
-                            <input type="text" id="saleProduct" placeholder="Ex: Collier Jade Étoile..." maxlength="150" required>
+                            <input type="text" id="saleProduct" placeholder="Ex: Collier Jade Étoile..." required autocomplete="off">
                         </div>
                         <div class="form-group">
                             <label for="saleDate">Date</label>
@@ -323,7 +320,7 @@
                         </div>
                         <div class="form-group">
                             <label for="salePrice">Montant Brut (€)</label>
-                            <input type="number" id="salePrice" placeholder="0.00" step="0.01" min="0.01" max="99999.99" required>
+                            <input type="number" id="salePrice" placeholder="0.00" step="0.01" min="0.01" required>
                         </div>
                         <div class="form-group full-width">
                             <label for="salePlatform">Plateforme</label>
@@ -347,11 +344,11 @@
                 <div class="section-header">
                     <h2 class="card-title achats"><span aria-hidden="true">🛒</span> Nouvel Achat (Dépense)</h2>
                 </div>
-                <form id="purchaseForm">
+                <form id="purchaseForm" novalidate>
                     <div class="form-grid">
                         <div class="form-group full-width">
                             <label for="purchaseDesc">Description du matériel</label>
-                            <input type="text" id="purchaseDesc" placeholder="Ex: Lot de perles, Enveloppes bulles..." maxlength="200" required>
+                            <input type="text" id="purchaseDesc" placeholder="Ex: Lot de perles, Enveloppes bulles..." required autocomplete="off">
                         </div>
                         <div class="form-group">
                             <label for="purchaseDate">Date</label>
@@ -359,11 +356,11 @@
                         </div>
                         <div class="form-group">
                             <label for="purchaseAmount">Montant TTC (€)</label>
-                            <input type="number" id="purchaseAmount" placeholder="0.00" step="0.01" min="0.01" max="99999.99" required>
+                            <input type="number" id="purchaseAmount" placeholder="0.00" step="0.01" min="0.01" required>
                         </div>
                         <div class="form-group">
                             <label for="purchaseSupplier">Fournisseur</label>
-                            <input type="text" id="purchaseSupplier" placeholder="Ex: Temu, La Poste..." maxlength="100" required>
+                            <input type="text" id="purchaseSupplier" placeholder="Ex: Temu, La Poste..." required autocomplete="off">
                         </div>
                         <div class="form-group">
                             <label for="purchasePayment">Moyen de paiement</label>
@@ -381,7 +378,7 @@
             </div>
         </section>
 
-        <section class="card history-card" aria-label="Registres et historique">
+        <section class="card history-card" aria-label="Registres officiels">
             <div class="section-header">
                 <h2 class="card-title"><span aria-hidden="true">📋</span> Registres Officiels &amp; Déclaration URSSAF</h2>
             </div>
@@ -393,36 +390,25 @@
                         <option value="">Tout l'historique</option>
                     </select>
                 </div>
-                <div class="monthly-highlight">
-                    <span id="urssafLabel">Montant à déclarer à l'URSSAF</span> : <strong class="text-success" id="urssafAmount">0.00€</strong>
+                <div class="monthly-highlight" id="monthlySummaryText">
+                    Montant à déclarer à l'URSSAF : <span class="text-success" id="urssafAmount">0.00€</span>
                 </div>
             </div>
 
             <div class="tables-grid">
                 <div>
-                    <div class="table-header">
-                        <h3 class="table-title text-success"><span aria-hidden="true">🟢</span> Livre des Recettes (Ventes)</h3>
-                        <button type="button" class="btn-export" id="btnExportSales" aria-label="Exporter les ventes en CSV">
-                            <span aria-hidden="true">⬇</span> Export CSV
-                        </button>
-                    </div>
+                    <h3 class="table-title text-success"><span aria-hidden="true">🟢</span> Livre des Recettes (Ventes)</h3>
                     <div class="table-responsive" id="salesTableContainer">
                         <div class="empty-state" role="status" aria-label="Chargement des ventes en cours">
-                            <div class="loader" aria-hidden="true"></div><span>Chargement...</span>
+                            <div class="loader" aria-hidden="true"></div>Chargement...
                         </div>
                     </div>
                 </div>
-
                 <div>
-                    <div class="table-header">
-                        <h3 class="table-title text-warning"><span aria-hidden="true">🟡</span> Registre des Achats (Dépenses)</h3>
-                        <button type="button" class="btn-export" id="btnExportPurchases" aria-label="Exporter les achats en CSV">
-                            <span aria-hidden="true">⬇</span> Export CSV
-                        </button>
-                    </div>
+                    <h3 class="table-title text-warning"><span aria-hidden="true">🟡</span> Registre des Achats (Dépenses)</h3>
                     <div class="table-responsive" id="purchasesTableContainer">
                         <div class="empty-state" role="status" aria-label="Chargement des achats en cours">
-                            <div class="loader" aria-hidden="true"></div><span>Chargement...</span>
+                            <div class="loader" aria-hidden="true"></div>Chargement...
                         </div>
                     </div>
                 </div>
@@ -430,9 +416,393 @@
         </section>
     </main>
 
+    <!-- Toast : vide au départ, aria-live annonce les changements dynamiques uniquement -->
     <div id="toast" class="toast" aria-live="polite" aria-atomic="true"></div>
-    <div id="tableAnnouncer" aria-live="polite" aria-atomic="true" class="sr-only"></div>
 
-    <script type="module" src="app.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDhlCjxx0FeYOqZPbZiHD9BTYmTsl0PVCQ",
+            authDomain: "suivi-ventes.firebaseapp.com",
+            projectId: "suivi-ventes",
+            storageBucket: "suivi-ventes.firebasestorage.app",
+            messagingSenderId: "272523591744",
+            appId: "1:272523591744:web:8f1ca8fbdfa2858f711fa5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+        let salesData = [];
+        let purchasesData = [];
+        let unsubSales = null;
+        let unsubPurchases = null;
+        let salesLoaded = false;
+        let purchasesLoaded = false;
+
+        // ─── SÉCURITÉ : Échappement XSS complet ───────────────────────────────
+        const escapeHTML = (str) => {
+            if (typeof str !== 'string') return '';
+            return str.replace(/[&<>'"`]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;',
+                "'": '&#39;', '"': '&quot;', '`': '&#96;'
+            }[tag] ?? ''));
+        };
+
+        // ─── UTILITAIRE : Date locale sans décalage UTC ────────────────────────
+        function getTodayISO() {
+            const d = new Date();
+            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        }
+
+        function formatDate(dateString) {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return escapeHTML(String(dateString));
+            const [y, m, d] = dateString.split('-');
+            const dateObj = new Date(parseInt(y,10), parseInt(m,10)-1, parseInt(d,10));
+            if (isNaN(dateObj.getTime())) return escapeHTML(dateString);
+            return dateObj.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+        }
+
+        // ─── UI HELPERS ────────────────────────────────────────────────────────
+        function showToast(msg, success = true) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.style.borderColor = success ? 'var(--success)' : 'var(--danger)';
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        // Dialog de confirmation accessible (remplace window.confirm)
+        function confirmAction(message, onConfirm) {
+            const overlay = document.createElement('div');
+            overlay.setAttribute('role', 'dialog');
+            overlay.setAttribute('aria-modal', 'true');
+            overlay.setAttribute('aria-labelledby', 'confirm-msg');
+            overlay.style.cssText = `
+                position:fixed;inset:0;background:rgba(0,0,0,.75);
+                display:flex;align-items:center;justify-content:center;
+                z-index:99999;padding:1rem;
+            `;
+            overlay.innerHTML = `
+                <div style="background:var(--bg-card);border:1px solid var(--border);
+                            border-radius:var(--radius);padding:1.5rem;max-width:360px;
+                            width:100%;text-align:center;">
+                    <p id="confirm-msg" style="margin-bottom:1.5rem;color:var(--text-main);line-height:1.5;">
+                        ${escapeHTML(message)}
+                    </p>
+                    <div style="display:flex;gap:1rem;">
+                        <button id="confirm-cancel" type="button"
+                            style="flex:1;padding:.75rem;border-radius:var(--radius);background:transparent;
+                                   border:1px solid var(--border);color:var(--text-muted);cursor:pointer;font-weight:600;">
+                            Annuler
+                        </button>
+                        <button id="confirm-ok" type="button"
+                            style="flex:1;padding:.75rem;border-radius:var(--radius);background:var(--danger);
+                                   border:none;color:#fff;font-weight:600;cursor:pointer;">
+                            Supprimer
+                        </button>
+                    </div>
+                </div>`;
+            document.body.appendChild(overlay);
+            const okBtn = overlay.querySelector('#confirm-ok');
+            const cancelBtn = overlay.querySelector('#confirm-cancel');
+            okBtn.focus();
+            const close = () => document.body.removeChild(overlay);
+            okBtn.addEventListener('click', () => { close(); onConfirm(); });
+            cancelBtn.addEventListener('click', close);
+            overlay.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+        }
+
+        // ─── AUTHENTIFICATION ──────────────────────────────────────────────────
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('app-container').style.display = 'block';
+                startListeningToData();
+            } else {
+                currentUser = null;
+                salesData = [];
+                purchasesData = [];
+                salesLoaded = false;
+                purchasesLoaded = false;
+                if (unsubSales) { unsubSales(); unsubSales = null; }
+                if (unsubPurchases) { unsubPurchases(); unsubPurchases = null; }
+                document.getElementById('auth-screen').style.display = 'flex';
+                document.getElementById('app-container').style.display = 'none';
+            }
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnLogin');
+            const errorText = document.getElementById('auth-error');
+            btn.textContent = 'Connexion...';
+            btn.disabled = true;
+            errorText.textContent = '';
+            try {
+                await signInWithEmailAndPassword(
+                    auth,
+                    document.getElementById('email').value,
+                    document.getElementById('password').value
+                );
+                showToast('✅ Connecté !');
+            } catch (e) {
+                errorText.textContent = 'Identifiants incorrects.';
+            } finally {
+                btn.textContent = 'Se connecter';
+                btn.disabled = false;
+            }
+        });
+
+        document.getElementById('btnLogout').addEventListener('click', () => signOut(auth));
+
+        // ─── ÉCOUTE TEMPS RÉEL ────────────────────────────────────────────────
+        function startListeningToData() {
+            if (!currentUser) return;
+            // Cleanup des anciens listeners avant de re-souscrire
+            if (unsubSales) { unsubSales(); unsubSales = null; }
+            if (unsubPurchases) { unsubPurchases(); unsubPurchases = null; }
+            salesLoaded = false;
+            purchasesLoaded = false;
+
+            const qSales = query(
+                collection(db, `users/${currentUser.uid}/sales`),
+                orderBy('date', 'desc')
+            );
+            unsubSales = onSnapshot(qSales, (snap) => {
+                salesData = snap.docs.map(d => {
+                    const data = d.data();
+                    return {
+                        id: d.id,
+                        date: typeof data.date === 'string' ? data.date : '',
+                        product: typeof data.product === 'string' ? data.product : '',
+                        price: typeof data.price === 'number' && isFinite(data.price) ? data.price : 0,
+                        platform: typeof data.platform === 'string' ? data.platform : '',
+                        createdAt: data.createdAt ?? null
+                    };
+                });
+                salesLoaded = true;
+                if (salesLoaded && purchasesLoaded) refreshUI();
+            });
+
+            const qPurchases = query(
+                collection(db, `users/${currentUser.uid}/purchases`),
+                orderBy('date', 'desc')
+            );
+            unsubPurchases = onSnapshot(qPurchases, (snap) => {
+                purchasesData = snap.docs.map(d => {
+                    const data = d.data();
+                    return {
+                        id: d.id,
+                        date: typeof data.date === 'string' ? data.date : '',
+                        description: typeof data.description === 'string' ? data.description : '',
+                        amount: typeof data.amount === 'number' && isFinite(data.amount) ? data.amount : 0,
+                        supplier: typeof data.supplier === 'string' ? data.supplier : '',
+                        paymentMethod: typeof data.paymentMethod === 'string' ? data.paymentMethod : '',
+                        createdAt: data.createdAt ?? null
+                    };
+                });
+                purchasesLoaded = true;
+                if (salesLoaded && purchasesLoaded) refreshUI();
+            });
+        }
+
+        // ─── ENREGISTREMENTS ──────────────────────────────────────────────────
+        document.getElementById('salesForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (!currentUser) return;
+            const btn = this.querySelector('button[type="submit"]');
+            btn.disabled = true; btn.textContent = 'Enregistrement...';
+            try {
+                await addDoc(collection(db, `users/${currentUser.uid}/sales`), {
+                    date: document.getElementById('saleDate').value,
+                    product: document.getElementById('saleProduct').value.trim(),
+                    price: document.getElementById('salePrice').valueAsNumber,
+                    platform: document.getElementById('salePlatform').value,
+                    createdAt: new Date()
+                });
+                this.reset();
+                document.getElementById('saleDate').value = getTodayISO();
+                showToast('✅ Vente enregistrée !');
+            } catch(err) {
+                showToast('Erreur lors de la sauvegarde', false);
+            } finally {
+                btn.disabled = false; btn.textContent = 'Enregistrer la vente';
+            }
+        });
+
+        document.getElementById('purchaseForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (!currentUser) return;
+            const btn = this.querySelector('button[type="submit"]');
+            btn.disabled = true; btn.textContent = 'Enregistrement...';
+            try {
+                await addDoc(collection(db, `users/${currentUser.uid}/purchases`), {
+                    date: document.getElementById('purchaseDate').value,
+                    description: document.getElementById('purchaseDesc').value.trim(),
+                    amount: document.getElementById('purchaseAmount').valueAsNumber,
+                    supplier: document.getElementById('purchaseSupplier').value.trim(),
+                    paymentMethod: document.getElementById('purchasePayment').value,
+                    createdAt: new Date()
+                });
+                this.reset();
+                document.getElementById('purchaseDate').value = getTodayISO();
+                showToast('🛒 Achat enregistré dans le registre !');
+            } catch(err) {
+                showToast('Erreur lors de la sauvegarde', false);
+            } finally {
+                btn.disabled = false; btn.textContent = "Enregistrer l'achat";
+            }
+        });
+
+        // ─── SUPPRESSIONS (délégation d'événements + closest) ─────────────────
+        document.getElementById('salesTableContainer').addEventListener('click', async (e) => {
+            const btn = e.target.closest('.btn-delete');
+            if (!btn) return;
+            if (!currentUser) { showToast('Session expirée, reconnectez-vous.', false); return; }
+            const id = btn.getAttribute('data-id');
+            if (!id) return;
+            confirmAction('Supprimer cette vente ?', async () => {
+                try {
+                    await deleteDoc(doc(db, `users/${currentUser.uid}/sales`, id));
+                    showToast('🗑️ Vente supprimée');
+                } catch(err) {
+                    showToast('Erreur lors de la suppression', false);
+                }
+            });
+        });
+
+        document.getElementById('purchasesTableContainer').addEventListener('click', async (e) => {
+            const btn = e.target.closest('.btn-delete');
+            if (!btn) return;
+            if (!currentUser) { showToast('Session expirée, reconnectez-vous.', false); return; }
+            const id = btn.getAttribute('data-id');
+            if (!id) return;
+            confirmAction("Supprimer cet achat du registre ?", async () => {
+                try {
+                    await deleteDoc(doc(db, `users/${currentUser.uid}/purchases`, id));
+                    showToast('🗑️ Achat supprimé');
+                } catch(err) {
+                    showToast('Erreur lors de la suppression', false);
+                }
+            });
+        });
+
+        // ─── MISE À JOUR AFFICHAGE ────────────────────────────────────────────
+        function refreshUI() {
+            const sel = document.getElementById('monthFilter');
+            const filter = sel.value;
+
+            // Reconstruction du sélecteur de mois
+            const allDates = [...salesData.map(s => s.date), ...purchasesData.map(p => p.date)];
+            const months = new Set(allDates.filter(d => /^\d{4}-\d{2}/.test(d)).map(d => d.substring(0,7)));
+            const savedVal = sel.value;
+            sel.innerHTML = "<option value=\"\">Tout l'historique</option>";
+            Array.from(months).sort().reverse().forEach(m => {
+                const [y, mo] = m.split('-');
+                if (y && mo) {
+                    const name = new Date(parseInt(y), parseInt(mo)-1)
+                        .toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+                    const opt = document.createElement('option');
+                    opt.value = m;
+                    opt.textContent = name.charAt(0).toUpperCase() + name.slice(1);
+                    sel.appendChild(opt);
+                }
+            });
+            if (savedVal && Array.from(months).includes(savedVal)) sel.value = savedVal;
+
+            // Filtrage (Firestore trie déjà par date desc — pas de re-tri JS)
+            const displaySales = filter ? salesData.filter(s => s.date.startsWith(filter)) : [...salesData];
+            const displayPurchases = filter ? purchasesData.filter(p => p.date.startsWith(filter)) : [...purchasesData];
+
+            // Calculs
+            const totalRev = displaySales.reduce((a, b) => a + b.price, 0);
+            const totalExp = displayPurchases.reduce((a, b) => a + b.amount, 0);
+            const profit = totalRev - totalExp;
+
+            document.getElementById('totalRevenue').textContent = totalRev.toFixed(2) + '€';
+            document.getElementById('totalPurchases').textContent = '- ' + totalExp.toFixed(2) + '€';
+            document.getElementById('netProfit').textContent = profit.toFixed(2) + '€';
+            document.getElementById('totalCount').textContent = displaySales.length;
+
+            // Résumé URSSAF — via textContent uniquement (zéro innerHTML)
+            const labelEl = document.getElementById('monthlySummaryText');
+            const labelText = filter
+                ? `Montant URSSAF à déclarer pour ${sel.options[sel.selectedIndex]?.text ?? ''}`
+                : "Chiffre d'Affaires total généré";
+            // On met à jour le noeud texte avant le <span>
+            labelEl.firstChild.textContent = labelText + ' : ';
+            document.getElementById('urssafAmount').textContent = totalRev.toFixed(2) + '€';
+
+            // ── Tableau Ventes ──
+            const tSales = document.getElementById('salesTableContainer');
+            if (!displaySales.length) {
+                tSales.innerHTML = '<div class="empty-state">Aucune vente à afficher.</div>';
+            } else {
+                let html = `<table>
+                    <thead><tr>
+                        <th scope="col">Date</th>
+                        <th scope="col">Produit</th>
+                        <th scope="col">Plateforme</th>
+                        <th scope="col">Prix</th>
+                        <th scope="col"><span class="sr-only">Actions</span></th>
+                    </tr></thead><tbody>`;
+                displaySales.forEach(s => {
+                    html += `<tr>
+                        <td>${formatDate(s.date)}</td>
+                        <td>${escapeHTML(s.product)}</td>
+                        <td><span class="tag">${escapeHTML(s.platform)}</span></td>
+                        <td class="price-tag positive">+${s.price.toFixed(2)}€</td>
+                        <td class="text-right">
+                            <button type="button" class="btn-delete"
+                                data-id="${escapeHTML(s.id)}"
+                                aria-label="Supprimer la vente : ${escapeHTML(s.product)}">×</button>
+                        </td>
+                    </tr>`;
+                });
+                tSales.innerHTML = html + '</tbody></table>';
+            }
+
+            // ── Tableau Achats ──
+            const tPurchases = document.getElementById('purchasesTableContainer');
+            if (!displayPurchases.length) {
+                tPurchases.innerHTML = '<div class="empty-state">Aucun achat enregistré.</div>';
+            } else {
+                let html = `<table>
+                    <thead><tr>
+                        <th scope="col">Date</th>
+                        <th scope="col">Matériel</th>
+                        <th scope="col">Fournisseur</th>
+                        <th scope="col">Prix</th>
+                        <th scope="col"><span class="sr-only">Actions</span></th>
+                    </tr></thead><tbody>`;
+                displayPurchases.forEach(p => {
+                    html += `<tr>
+                        <td>${formatDate(p.date)}</td>
+                        <td>${escapeHTML(p.description)}</td>
+                        <td><span class="tag">${escapeHTML(p.supplier)}</span></td>
+                        <td class="price-tag negative">-${p.amount.toFixed(2)}€</td>
+                        <td class="text-right">
+                            <button type="button" class="btn-delete"
+                                data-id="${escapeHTML(p.id)}"
+                                aria-label="Supprimer l'achat : ${escapeHTML(p.description)}">×</button>
+                        </td>
+                    </tr>`;
+                });
+                tPurchases.innerHTML = html + '</tbody></table>';
+            }
+        }
+
+        // ─── INIT ─────────────────────────────────────────────────────────────
+        document.getElementById('saleDate').value = getTodayISO();
+        document.getElementById('purchaseDate').value = getTodayISO();
+        document.getElementById('monthFilter').addEventListener('change', refreshUI);
+    </script>
 </body>
 </html>
