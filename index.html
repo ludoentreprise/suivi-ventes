@@ -6,29 +6,34 @@
     <title>StudioJade - Ventes & Achats</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Inter:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
+            /* Palette Nothing OS */
             --bg-body: #000000;
-            --bg-card: #0a0a0a;
-            --bg-input: #171717;
-            --text-main: #e5e5e5;
-            --text-muted: #828282;
-            --border: #262626;
-            --primary: #e5e5e5;
-            --primary-hover: #ffffff;
-            --success: #22c55e;
-            --danger: #ef4444;
-            --warning: #eab308;
-            --badge-bg: #262626;
-            --badge-text: #e5e5e5;
-            --radius: 8px;
+            --bg-card: #000000;
+            --bg-input: #080808;
+            --text-main: #ffffff;
+            --text-muted: #666666;
+            --border: #333333;
+            --accent-red: #ea1d2c; /* Le rouge Nothing */
+            --primary: #ea1d2c;
+            --primary-hover: #ff2a3a;
+            --success: #ea1d2c; /* Ventes en rouge pour le thème */
+            --danger: #ffffff;  /* Achats en blanc */
+            --warning: #ffffff;
+            --badge-bg: #111111;
+            --badge-text: #ffffff;
+            --radius: 0px; /* Angles droits stricts */
+            
+            --font-pixel: 'DotGothic16', monospace;
+            --font-text: 'Inter', sans-serif;
         }
 
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-text);
             background-color: var(--bg-body);
             color: var(--text-main);
             line-height: 1.5;
@@ -36,11 +41,19 @@
             min-height: 100vh;
         }
 
+        /* Typographie Nothing */
+        h1, h2, h3, .stat-value, .btn-primary, .btn-warning, .btn-primary-alt, .price-tag, .auth-title {
+            font-family: var(--font-pixel);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
         .skip-link {
             position: absolute; top: -100%; left: 1rem;
-            background: var(--bg-card); color: var(--text-main);
+            background: var(--bg-card); color: var(--accent-red);
             padding: 0.5rem 1rem; border-radius: var(--radius);
-            z-index: 10000; text-decoration: none; border: 1px solid var(--border);
+            z-index: 10000; text-decoration: none; border: 2px dotted var(--accent-red);
+            font-family: var(--font-pixel);
         }
         .skip-link:focus { top: 1rem; }
 
@@ -53,8 +66,8 @@
 
         .mt-1 { margin-top: 1rem; }
         .mt-2 { margin-top: 2rem; }
-        .text-danger { color: var(--danger); font-size: 0.9rem; }
-        .text-success { color: var(--success); }
+        .text-danger { color: var(--accent-red); font-size: 0.9rem; font-family: var(--font-pixel); }
+        .text-success { color: var(--accent-red); }
         .text-warning { color: var(--warning); }
         .max-w-300 { max-width: 300px; }
         .text-right { text-align: right; }
@@ -66,180 +79,160 @@
             z-index: 9999; padding: 20px;
         }
         .auth-card {
-            background: var(--bg-card); padding: 2.5rem; border-radius: 16px;
-            border: 1px solid var(--border); width: 100%; max-width: 400px; text-align: center;
+            background: var(--bg-card); padding: 2.5rem; border-radius: var(--radius);
+            border: 2px dotted var(--border); width: 100%; max-width: 400px; text-align: center;
         }
-        .auth-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 2rem; color: var(--text-main); }
+        .auth-title { font-size: 2rem; margin-bottom: 2rem; color: var(--text-main); }
 
-        header { margin-bottom: 2rem; text-align: center; position: relative; }
-        h1 { font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem; letter-spacing: -0.05em; }
+        header { margin-bottom: 3rem; text-align: center; position: relative; }
+        h1 { font-size: 2.5rem; color: var(--text-main); margin-bottom: 0.5rem; }
 
         .btn-logout {
             position: absolute; right: 0; top: 0;
-            background: transparent; border: 1px solid var(--border); color: var(--text-muted);
+            background: transparent; border: 1px dotted var(--border); color: var(--text-muted);
             padding: 0.5rem 1rem; font-size: 0.8rem; border-radius: var(--radius); cursor: pointer;
-            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+            font-family: var(--font-pixel); text-transform: uppercase;
+            transition: all 0.2s ease;
         }
-        .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+        .btn-logout:hover { border-color: var(--text-main); color: var(--text-main); }
 
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
         .stat-card {
             background: var(--bg-card); padding: 1.5rem; border-radius: var(--radius);
-            border: 1px solid var(--border); display: flex; flex-direction: column;
-            transition: transform 0.2s ease, border-color 0.2s ease;
+            border: 2px dotted var(--border); display: flex; flex-direction: column;
+            transition: border-color 0.2s ease;
         }
-        .stat-card:hover { border-color: var(--text-muted); transform: translateY(-2px); }
-        .stat-label { font-size: 0.875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
-        .stat-value { font-size: 2rem; font-weight: 700; color: var(--text-main); letter-spacing: -0.05em; }
-        .stat-value.money { color: var(--success); }
-        .stat-value.expense { color: var(--danger); }
-        .stat-value.profit { color: var(--primary); }
+        .stat-card:hover { border-color: var(--accent-red); }
+        .stat-label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 0.5rem; }
+        .stat-value { font-size: 2.5rem; color: var(--text-main); }
+        .stat-value.money { color: var(--accent-red); }
+        .stat-value.expense { color: var(--text-muted); }
+        .stat-value.profit { color: var(--text-main); }
 
-        .forms-container { display: grid; grid-template-columns: 1fr; gap: 2rem; margin-bottom: 2rem; }
+        .forms-container { display: grid; grid-template-columns: 1fr; gap: 2rem; margin-bottom: 3rem; }
         @media (min-width: 900px) { .forms-container { grid-template-columns: 1fr 1fr; } }
 
-        .card { background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border); padding: 2rem; }
-        .card-sales { border-top: 4px solid var(--success); }
-        .card-purchases { border-top: 4px solid var(--warning); }
+        .card { background: var(--bg-card); border-radius: var(--radius); border: 2px dotted var(--border); padding: 2rem; }
+        .card-sales { border-top: 4px solid var(--accent-red); }
+        .card-purchases { border-top: 4px solid var(--text-main); }
 
         .section-header { margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
-        .card-title { font-size: 1.25rem; font-weight: 700; color: var(--text-main); }
-        .card-title.ventes { color: var(--success); }
-        .card-title.achats { color: var(--warning); }
+        .card-title { font-size: 1.5rem; color: var(--text-main); }
+        .card-title.ventes { color: var(--accent-red); }
+        .card-title.achats { color: var(--text-main); }
 
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
         .form-group { display: flex; flex-direction: column; gap: 0.5rem; text-align: left; }
         .form-group.full-width { grid-column: 1 / -1; }
 
-        label { font-size: 0.875rem; font-weight: 500; color: var(--text-muted); }
+        label { font-size: 0.75rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
 
         input, select {
             padding: 0.75rem; background-color: var(--bg-input); border: 1px solid var(--border);
             border-radius: var(--radius); font-size: 1rem; color: var(--text-main);
             font-family: inherit; width: 100%;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            transition: all 0.2s ease;
         }
         
-        input:focus-visible, select:focus-visible {
-            outline: 2px solid var(--primary);
-            outline-offset: 2px;
-            border-color: var(--text-main);
-            box-shadow: 0 0 0 4px rgba(229, 229, 229, 0.15);
-        }
-        
-        input:focus, select:focus {
-            border-color: var(--text-main);
-            box-shadow: 0 0 0 2px rgba(229, 229, 229, 0.15);
+        input:focus-visible, select:focus-visible, input:focus, select:focus {
             outline: none;
+            border-color: var(--accent-red);
+            box-shadow: 4px 4px 0px 0px rgba(234, 29, 44, 0.2);
         }
+
         ::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.6; cursor: pointer; }
 
         select {
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23828282' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 0.75rem center;
-            padding-right: 2.5rem;
+            -webkit-appearance: none; -moz-appearance: none; appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23ffffff' stroke-width='1.5' fill='none' stroke-linecap='square'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 0.75rem center; padding-right: 2.5rem;
         }
 
         .button-group { display: flex; gap: 1rem; }
-        .button-group-vertical { display: flex; flex-direction: column; gap: 1rem; }
 
         button {
-            padding: 0.75rem 1.5rem; border-radius: var(--radius); font-weight: 600;
-            font-size: 0.95rem; cursor: pointer; border: none;
-            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+            padding: 0.75rem 1.5rem; border-radius: var(--radius);
+            font-size: 1.2rem; cursor: pointer; border: none;
+            transition: transform 0.1s ease, background-color 0.2s ease;
         }
         .button-group button { flex: 1; }
 
-        .btn-primary { background-color: var(--success); color: #000000; }
-        .btn-primary:hover { background-color: #16a34a; transform: translateY(-1px); }
-        .btn-primary-alt { background-color: var(--primary); color: #000000; width: 100%; }
-        .btn-primary-alt:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
-        .btn-warning { background-color: var(--warning); color: #000000; }
-        .btn-warning:hover { background-color: #ca8a04; transform: translateY(-1px); }
+        .btn-primary { background-color: var(--accent-red); color: #000000; }
+        .btn-primary:hover { background-color: var(--primary-hover); transform: translate(2px, 2px); }
+        
+        .btn-primary-alt { background-color: var(--accent-red); color: #000000; width: 100%; }
+        .btn-primary-alt:hover { background-color: var(--primary-hover); transform: translate(2px, 2px); }
+        
+        .btn-warning { background-color: var(--text-main); color: #000000; }
+        .btn-warning:hover { background-color: #cccccc; transform: translate(2px, 2px); }
 
-        /* Styles pour les boutons d'export */
         .table-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem; }
-        .table-title { font-size: 1rem; margin: 0; }
+        .table-title { font-size: 1.2rem; margin: 0; font-family: var(--font-pixel); text-transform: uppercase; }
+        
         .btn-export {
-            background: transparent; border: 1px solid var(--border); color: var(--text-muted);
+            background: transparent; border: 1px dotted var(--border); color: var(--text-muted);
             padding: 0.4rem 0.9rem; font-size: 0.8rem; border-radius: var(--radius); cursor: pointer;
-            transition: border-color 0.2s ease, color 0.2s ease;
-            white-space: nowrap;
+            font-family: var(--font-pixel); text-transform: uppercase;
+            transition: all 0.2s ease; white-space: nowrap;
         }
-        .btn-export:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
-
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation-duration: 0.01ms !important;
-                transition-duration: 0.01ms !important;
-            }
-            .btn-primary:hover, .btn-primary-alt:hover, .btn-warning:hover,
-            .stat-card:hover { transform: none; }
-        }
+        .btn-export:hover:not(:disabled) { border-color: var(--text-main); color: var(--text-main); }
 
         .history-card { margin-top: 2rem; }
-        .filter-wrapper { background: var(--bg-input); padding: 1.5rem; border-radius: var(--radius); margin-bottom: 1.5rem; border: 1px solid var(--border); }
-        .monthly-highlight { font-weight: 700; color: var(--text-main); font-size: 1.1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+        .filter-wrapper { background: var(--bg-input); padding: 1.5rem; border-radius: var(--radius); margin-bottom: 2rem; border: 1px dotted var(--border); }
+        .monthly-highlight { font-family: var(--font-pixel); color: var(--text-main); font-size: 1.2rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px dotted var(--border); text-transform: uppercase; }
 
         .tables-grid { display: grid; grid-template-columns: 1fr; gap: 2rem; }
         @media (min-width: 900px) { .tables-grid { grid-template-columns: 1fr 1fr; } }
 
-        .table-responsive { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); max-height: min(400px, 50vh); overflow-y: auto; }
+        .table-responsive { overflow-x: auto; border-radius: var(--radius); border: 1px dotted var(--border); max-height: min(400px, 50vh); overflow-y: auto; }
 
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem; }
         th {
-            position: sticky; top: 0; padding: 1rem; background-color: var(--bg-card);
-            font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem;
-            letter-spacing: 0.05em; border-bottom: 1px solid var(--border); z-index: 10;
+            position: sticky; top: 0; padding: 1rem; background-color: var(--bg-input);
+            font-weight: 400; color: var(--text-muted); text-transform: uppercase; font-size: 0.8rem;
+            letter-spacing: 2px; border-bottom: 1px solid var(--border); z-index: 10;
+            font-family: var(--font-pixel);
         }
         td { padding: 1rem; border-bottom: 1px solid var(--border); color: var(--text-main); }
         tr:last-child td { border-bottom: none; }
-        tr:hover td { background-color: var(--bg-input); }
+        tr:hover td { background-color: #111111; }
 
         .tag {
-            display: inline-flex; align-items: center; padding: 0.25rem 0.75rem; border-radius: 99px;
-            font-size: 0.75rem; font-weight: 600; background-color: var(--badge-bg); color: var(--badge-text); border: 1px solid var(--border);
+            display: inline-flex; align-items: center; padding: 0.25rem 0.75rem; border-radius: 0;
+            font-size: 0.75rem; font-family: var(--font-pixel); text-transform: uppercase; 
+            background-color: var(--badge-bg); color: var(--badge-text); border: 1px dotted var(--border);
         }
-        .price-tag { font-family: 'Courier New', monospace; font-weight: 700; }
-        .price-tag.positive { color: var(--success); }
-        .price-tag.negative { color: var(--danger); }
+        .price-tag { font-size: 1.1rem; }
+        .price-tag.positive { color: var(--accent-red); }
+        .price-tag.negative { color: var(--text-muted); }
 
         .btn-delete {
-            background-color: transparent; border: 1px solid var(--border); color: var(--danger);
-            padding: 0.4rem 0.8rem; font-size: 0.9rem; border-radius: 4px; cursor: pointer;
-            transition: background-color 0.2s ease, border-color 0.2s ease;
-            line-height: 1;
+            background-color: transparent; border: 1px solid var(--border); color: var(--text-muted);
+            padding: 0.4rem 0.8rem; font-size: 0.9rem; border-radius: 0; cursor: pointer;
+            font-family: var(--font-pixel); transition: all 0.2s ease; line-height: 1;
         }
-        .btn-delete:hover { background-color: rgba(239, 68, 68, 0.1); border-color: var(--danger); }
-        .empty-state { padding: 3rem; text-align: center; color: var(--text-muted); }
+        .btn-delete:hover { background-color: var(--accent-red); color: #000; border-color: var(--accent-red); }
+        
+        .empty-state { padding: 3rem; text-align: center; color: var(--text-muted); font-family: var(--font-pixel); text-transform: uppercase; letter-spacing: 1px; }
 
         .toast {
-            visibility: hidden; min-width: 250px; background-color: var(--bg-input); color: var(--text-main);
-            text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 100;
-            left: 50%; bottom: 30px; transform: translateX(-50%); border: 1px solid var(--success);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5); font-weight: 500; opacity: 0;
+            visibility: hidden; min-width: 250px; background-color: #000; color: var(--accent-red);
+            text-align: center; border-radius: 0; padding: 16px; position: fixed; z-index: 100;
+            left: 50%; bottom: 30px; transform: translateX(-50%); border: 2px dotted var(--accent-red);
+            font-family: var(--font-pixel); text-transform: uppercase; font-size: 1.2rem; opacity: 0;
             transition: opacity 0.3s, bottom 0.3s;
         }
         .toast.show { visibility: visible; opacity: 1; bottom: 50px; }
 
         .loader {
-            border: 3px solid #f3f3f3; border-top: 3px solid var(--text-main);
+            border: 2px dotted var(--border); border-top: 2px solid var(--accent-red);
             border-radius: 50%; width: 20px; height: 20px;
-            animation: spin 1s linear infinite;
-            display: inline-block; margin-right: 10px;
+            animation: spin 1s linear infinite; display: inline-block; margin-right: 10px;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        @media (prefers-reduced-motion: reduce) {
-            .loader { animation: none; border-style: dashed; opacity: 0.6; }
-        }
-
         @media (max-width: 640px) {
-            h1 { font-size: 1.5rem; }
+            h1 { font-size: 1.8rem; }
             .form-grid { grid-template-columns: 1fr; }
             th, td { padding: 0.75rem; }
             .button-group { flex-direction: column; }
@@ -254,7 +247,7 @@
     <div id="auth-screen" role="main">
         <div class="auth-card">
             <form id="loginForm" novalidate>
-                <h2 class="auth-title"><span aria-hidden="true">🔐</span> Connexion StudioJade</h2>
+                <h2 class="auth-title">STUDIOJADE OS</h2>
                 <div class="form-group">
                     <label for="email">Email</label>
                     <input type="email" id="email" autocomplete="email" placeholder="votre@email.com" required>
@@ -264,7 +257,7 @@
                     <input type="password" id="password" autocomplete="current-password" placeholder="••••••" required>
                 </div>
                 <div class="mt-2">
-                    <button type="submit" class="btn-primary-alt" id="btnLogin">Se connecter</button>
+                    <button type="submit" class="btn-primary-alt" id="btnLogin">Connexion</button>
                 </div>
                 <p id="auth-error" class="text-danger mt-1" role="alert" aria-live="assertive"></p>
             </form>
@@ -273,17 +266,17 @@
 
     <main class="container" id="app-container" tabindex="-1">
         <header>
-            <h1><span aria-hidden="true">✨</span> StudioJade - Ventes &amp; Achats</h1>
-            <button class="btn-logout" id="btnLogout">Se déconnecter</button>
+            <h1>STUDIOJADE</h1>
+            <button class="btn-logout" id="btnLogout">Déconnexion</button>
         </header>
 
         <section aria-label="Statistiques" class="stats-grid">
             <dl class="stat-card">
-                <dt class="stat-label">Chiffre d'Affaires (URSSAF)</dt>
+                <dt class="stat-label">CA (URSSAF)</dt>
                 <dd class="stat-value money" id="totalRevenue">0.00€</dd>
             </dl>
             <dl class="stat-card">
-                <dt class="stat-label">Achats &amp; Frais</dt>
+                <dt class="stat-label">Achats & Frais</dt>
                 <dd class="stat-value expense" id="totalPurchases">- 0.00€</dd>
             </dl>
             <dl class="stat-card">
@@ -291,7 +284,7 @@
                 <dd class="stat-value profit" id="netProfit">0.00€</dd>
             </dl>
             <dl class="stat-card">
-                <dt class="stat-label">Ventes Réalisées</dt>
+                <dt class="stat-label">Ventes</dt>
                 <dd class="stat-value" id="totalCount">0</dd>
             </dl>
         </section>
@@ -299,7 +292,7 @@
         <section class="forms-container" aria-label="Saisie des données">
             <div class="card card-sales">
                 <div class="section-header">
-                    <h2 class="card-title ventes"><span aria-hidden="true">➕</span> Nouvelle Vente</h2>
+                    <h2 class="card-title ventes">[+] Nouvelle Vente</h2>
                 </div>
                 <form id="salesForm">
                     <div class="form-grid">
@@ -328,20 +321,20 @@
                         </div>
                     </div>
                     <div class="button-group">
-                        <button type="submit" class="btn-primary">Enregistrer la vente</button>
+                        <button type="submit" class="btn-primary">Enregistrer</button>
                     </div>
                 </form>
             </div>
 
             <div class="card card-purchases">
                 <div class="section-header">
-                    <h2 class="card-title achats"><span aria-hidden="true">🛒</span> Nouvel Achat (Dépense)</h2>
+                    <h2 class="card-title achats">[-] Nouvel Achat</h2>
                 </div>
                 <form id="purchaseForm">
                     <div class="form-grid">
                         <div class="form-group full-width">
                             <label for="purchaseDesc">Description du matériel</label>
-                            <input type="text" id="purchaseDesc" placeholder="Ex: Lot de perles, Enveloppes bulles..." required>
+                            <input type="text" id="purchaseDesc" required>
                         </div>
                         <div class="form-group">
                             <label for="purchaseDate">Date</label>
@@ -365,7 +358,7 @@
                         </div>
                     </div>
                     <div class="button-group">
-                        <button type="submit" class="btn-warning">Enregistrer l'achat</button>
+                        <button type="submit" class="btn-warning">Enregistrer</button>
                     </div>
                 </form>
             </div>
@@ -373,27 +366,27 @@
 
         <section class="card history-card" aria-label="Historique et registres">
             <div class="section-header">
-                <h2 class="card-title"><span aria-hidden="true">📋</span> Registres Officiels &amp; Déclaration URSSAF</h2>
+                <h2 class="card-title">Registre & URSSAF</h2>
             </div>
 
             <div class="filter-wrapper">
                 <div class="form-group max-w-300">
-                    <label for="monthFilter"><span aria-hidden="true">📅</span> Filtrer par mois</label>
+                    <label for="monthFilter">Filtrer par mois</label>
                     <select id="monthFilter">
                         <option value="">Tout l'historique</option>
                     </select>
                 </div>
                 <div class="monthly-highlight" id="monthlySummaryText">
-                    <span id="urssafLabel">Chiffre d'Affaires total généré</span> : <strong class="text-success" id="urssafAmount">0.00€</strong>
+                    <span id="urssafLabel">CA Total</span> : <strong class="text-success" id="urssafAmount">0.00€</strong>
                 </div>
             </div>
 
             <div class="tables-grid">
                 <div>
                     <div class="table-header">
-                        <h3 class="table-title text-success"><span aria-hidden="true">🟢</span> Livre des Recettes (Ventes)</h3>
+                        <h3 class="table-title text-success">Livre des Recettes</h3>
                         <button type="button" class="btn-export" id="btnExportSales" aria-label="Exporter les ventes en CSV">
-                            <span aria-hidden="true">⬇</span> Export CSV
+                            Export CSV
                         </button>
                     </div>
                     <div class="table-responsive" id="salesTableContainer">
@@ -405,9 +398,9 @@
 
                 <div>
                     <div class="table-header">
-                        <h3 class="table-title text-warning"><span aria-hidden="true">🟡</span> Registre des Achats (Dépenses)</h3>
+                        <h3 class="table-title text-warning">Registre des Achats</h3>
                         <button type="button" class="btn-export" id="btnExportPurchases" aria-label="Exporter les achats en CSV">
-                            <span aria-hidden="true">⬇</span> Export CSV
+                            Export CSV
                         </button>
                     </div>
                     <div class="table-responsive" id="purchasesTableContainer">
