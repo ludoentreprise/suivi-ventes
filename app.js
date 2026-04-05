@@ -39,6 +39,14 @@ const escapeHTML = (str) => {
     }[tag]));
 };
 
+// FIX LOGIQUE MÉTIER : Gestion parfaite des flottants (JS convertit en centimes avant calcul)
+const safeMoneySum = (data, key) => {
+    return data.reduce((acc, item) => {
+        const amount = Math.round((Number(item[key]) || 0) * 100);
+        return acc + amount;
+    }, 0) / 100;
+};
+
 function formatDate(dateString) {
     if (!DATE_REGEX.test(dateString)) return escapeHTML(String(dateString));
     const [y, m, d] = dateString.split('-');
@@ -68,22 +76,30 @@ function announceTableUpdate(message) {
     document.getElementById('tableAnnouncer').textContent = message;
 }
 
+// FIX SÉCURITÉ : Prévention DDE/Formula Injection et bugs de sauts de ligne
 function exportCSV(data, type, filename) {
     if (!data.length) {
         showToast('Aucune donnée à exporter', false);
         return;
     }
 
+    const sanitizeCSV = (str) => {
+        if (str === null || str === undefined) return '';
+        let clean = String(str).replace(/"/g, '""');
+        if (/^[=+\-@]/.test(clean)) clean = "'" + clean;
+        return clean.replace(/[\n\r]/g, ' '); 
+    };
+
     let csv;
     if (type === 'sales') {
         csv = 'Date,Produit,Plateforme,Montant Brut (EUR)\n' +
             data.map(s =>
-                `${s.date},"${String(s.product || '').replace(/"/g, '""')}","${String(s.platform || '').replace(/"/g, '""')}",${(Number(s.price) || 0).toFixed(2)}`
+                `${s.date},"${sanitizeCSV(s.product)}","${sanitizeCSV(s.platform)}",${(Number(s.price) || 0).toFixed(2)}`
             ).join('\n');
     } else {
         csv = 'Date,Description,Fournisseur,Moyen de paiement,Montant TTC (EUR)\n' +
             data.map(p =>
-                `${p.date},"${String(p.description || '').replace(/"/g, '""')}","${String(p.supplier || '').replace(/"/g, '""')}","${String(p.paymentMethod || '').replace(/"/g, '""')}",${(Number(p.amount) || 0).toFixed(2)}`
+                `${p.date},"${sanitizeCSV(p.description)}","${sanitizeCSV(p.supplier)}","${sanitizeCSV(p.paymentMethod)}",${(Number(p.amount) || 0).toFixed(2)}`
             ).join('\n');
     }
 
@@ -114,14 +130,8 @@ onAuthStateChanged(auth, (user) => {
         salesLoaded = false;
         purchasesLoaded = false;
 
-        if (unsubSales) {
-            unsubSales();
-            unsubSales = null;
-        }
-        if (unsubPurchases) {
-            unsubPurchases();
-            unsubPurchases = null;
-        }
+        if (unsubSales) { unsubSales(); unsubSales = null; }
+        if (unsubPurchases) { unsubPurchases(); unsubPurchases = null; }
 
         document.getElementById('auth-screen').style.display = 'flex';
         document.getElementById('app-container').style.display = 'none';
@@ -157,60 +167,33 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
 
 document.getElementById('btnLogout').addEventListener('click', () => signOut(auth));
 
+// FIX ARCHITECTURE : Factory Pattern pour supprimer la duplication onSnapshot
 function startListeningToData() {
     if (!currentUser) return;
 
-    if (unsubSales) {
-        unsubSales();
-        unsubSales = null;
-    }
-    if (unsubPurchases) {
-        unsubPurchases();
-        unsubPurchases = null;
-    }
-
+    [unsubSales, unsubPurchases].forEach(unsub => unsub && unsub());
     salesLoaded = false;
     purchasesLoaded = false;
 
-    const qSales = query(
-        collection(db, `users/${currentUser.uid}/sales`),
-        orderBy('date', 'desc')
-    );
+    const createListener = (collectionName, stateSetter, loadFlagSetter) => {
+        const q = query(collection(db, `users/${currentUser.uid}/${collectionName}`), orderBy('date', 'desc'));
+        return onSnapshot(q, 
+            (snap) => {
+                stateSetter(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+                loadFlagSetter(true);
+                if (salesLoaded && purchasesLoaded) refreshUI();
+            },
+            (error) => {
+                console.error(`[Firestore] ${collectionName} error:`, error.code);
+                loadFlagSetter(true);
+                if (salesLoaded && purchasesLoaded) refreshUI();
+                showToast(`Erreur de synchronisation : ${collectionName}`, false);
+            }
+        );
+    };
 
-    unsubSales = onSnapshot(
-        qSales,
-        (snap) => {
-            salesData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            salesLoaded = true;
-            if (salesLoaded && purchasesLoaded) refreshUI();
-        },
-        (error) => {
-            console.error('[Firestore] Sales error:', error.code);
-            salesLoaded = true;
-            if (salesLoaded && purchasesLoaded) refreshUI();
-            showToast('Erreur de connexion aux ventes', false);
-        }
-    );
-
-    const qPurchases = query(
-        collection(db, `users/${currentUser.uid}/purchases`),
-        orderBy('date', 'desc')
-    );
-
-    unsubPurchases = onSnapshot(
-        qPurchases,
-        (snap) => {
-            purchasesData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            purchasesLoaded = true;
-            if (salesLoaded && purchasesLoaded) refreshUI();
-        },
-        (error) => {
-            console.error('[Firestore] Purchases error:', error.code);
-            purchasesLoaded = true;
-            if (salesLoaded && purchasesLoaded) refreshUI();
-            showToast('Erreur de connexion aux achats', false);
-        }
-    );
+    unsubSales = createListener('sales', data => salesData = data, flag => salesLoaded = flag);
+    unsubPurchases = createListener('purchases', data => purchasesData = data, flag => purchasesLoaded = flag);
 }
 
 document.getElementById('salesForm').addEventListener('submit', async function (e) {
@@ -283,6 +266,7 @@ document.getElementById('purchaseForm').addEventListener('submit', async functio
     }
 });
 
+// FIX ACCESSIBILITÉ : Restauration du focus après suppression
 document.getElementById('salesTableContainer').addEventListener('click', async (e) => {
     const deleteBtn = e.target.closest('.btn-delete');
     if (deleteBtn && currentUser) {
@@ -291,6 +275,10 @@ document.getElementById('salesTableContainer').addEventListener('click', async (
             try {
                 await deleteDoc(doc(db, `users/${currentUser.uid}/sales`, id));
                 showToast('Vente supprimée');
+                
+                const container = document.getElementById('salesTableContainer');
+                container.setAttribute('tabindex', '-1');
+                container.focus(); 
             } catch (err) {
                 console.error('[Firestore] Delete sale error:', err.code);
                 showToast('Erreur : suppression impossible', false);
@@ -299,6 +287,7 @@ document.getElementById('salesTableContainer').addEventListener('click', async (
     }
 });
 
+// FIX ACCESSIBILITÉ : Restauration du focus après suppression
 document.getElementById('purchasesTableContainer').addEventListener('click', async (e) => {
     const deleteBtn = e.target.closest('.btn-delete');
     if (deleteBtn && currentUser) {
@@ -307,6 +296,10 @@ document.getElementById('purchasesTableContainer').addEventListener('click', asy
             try {
                 await deleteDoc(doc(db, `users/${currentUser.uid}/purchases`, id));
                 showToast('Achat supprimé');
+                
+                const container = document.getElementById('purchasesTableContainer');
+                container.setAttribute('tabindex', '-1');
+                container.focus();
             } catch (err) {
                 console.error('[Firestore] Delete purchase error:', err.code);
                 showToast('Erreur : suppression impossible', false);
@@ -358,17 +351,16 @@ function refreshUI() {
 
     if (savedVal && Array.from(months).includes(savedVal)) sel.value = savedVal;
 
-    // 1. STATISTIQUES GLOBALES TOUJOURS FIXES (Tout l'historique)
-    const globalRev = salesData.reduce((a, b) => a + (Number(b.price) || 0), 0);
-    const globalExp = purchasesData.reduce((a, b) => a + (Number(b.amount) || 0), 0);
-    const globalProfit = globalRev - globalExp;
+    // FIX MATHS : Utilisation de safeMoneySum pour éviter les erreurs de flottants JS
+    const globalRev = safeMoneySum(salesData, 'price');
+    const globalExp = safeMoneySum(purchasesData, 'amount');
+    const globalProfit = (Math.round(globalRev * 100) - Math.round(globalExp * 100)) / 100;
 
     document.getElementById('totalRevenue').textContent = globalRev.toFixed(2) + "€";
     document.getElementById('totalPurchases').textContent = "- " + globalExp.toFixed(2) + "€";
     document.getElementById('netProfit').textContent = globalProfit.toFixed(2) + "€";
     document.getElementById('totalCount').textContent = salesData.length;
 
-    // 2. FILTRAGE POUR URSSAF ET TABLEAUX
     const effectiveFilter = sel.value;
 
     const displaySales = effectiveFilter
@@ -379,8 +371,8 @@ function refreshUI() {
         ? purchasesData.filter(p => p.date?.startsWith(effectiveFilter))
         : [...purchasesData];
 
-    // 3. MONTANT URSSAF DYNAMIQUE (Selon le mois sélectionné)
-    const filteredRev = displaySales.reduce((a, b) => a + (Number(b.price) || 0), 0);
+    // FIX MATHS : Idem ici pour l'URSSAF
+    const filteredRev = safeMoneySum(displaySales, 'price');
 
     const labelURSSAF = effectiveFilter
         ? `Montant URSSAF à déclarer pour ${sel.options[sel.selectedIndex]?.text}`
@@ -389,7 +381,6 @@ function refreshUI() {
     document.getElementById('urssafLabel').textContent = labelURSSAF;
     document.getElementById('urssafAmount').textContent = filteredRev.toFixed(2) + "€";
 
-    // 4. AFFICHAGE DES TABLEAUX DYNAMIQUES
     const tSales = document.getElementById('salesTableContainer');
     if (!displaySales.length) {
         tSales.innerHTML = `<div class="empty-state">Aucune vente à afficher.</div>`;
