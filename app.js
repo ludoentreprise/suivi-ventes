@@ -105,9 +105,12 @@ function exportCSV(data, type, filename) {
 // --- AUTHENTIFICATION ET FIRESTORE ---
 
 onAuthStateChanged(auth, (user) => {
+    const authScreen = document.getElementById('auth-screen');
     if (user) {
         currentUser = user;
-        document.getElementById('auth-screen').style.display = 'none';
+        // DESIGN : Fade out de l'écran d'auth, puis masquage
+        authScreen.classList.add('hidden');
+        setTimeout(() => { authScreen.style.display = 'none'; }, 300);
         document.getElementById('app-container').style.display = 'block';
         document.getElementById('skipLink').removeAttribute('tabindex');
         startListeningToData();
@@ -117,7 +120,9 @@ onAuthStateChanged(auth, (user) => {
         salesLoaded = false; purchasesLoaded = false;
         if (unsubSales) { unsubSales(); unsubSales = null; }
         if (unsubPurchases) { unsubPurchases(); unsubPurchases = null; }
-        document.getElementById('auth-screen').style.display = 'flex';
+        // DESIGN : Réaffichage puis fade in de l'écran d'auth
+        authScreen.style.display = 'flex';
+        requestAnimationFrame(() => authScreen.classList.remove('hidden'));
         document.getElementById('app-container').style.display = 'none';
         document.getElementById('skipLink').setAttribute('tabindex', '-1');
         document.getElementById('btnLogin').disabled = false;
@@ -273,7 +278,6 @@ function updateMonthFilterOptions() {
     const allDates = [...salesData.map(s => s.date), ...purchasesData.map(p => p.date)].filter(d => typeof d === 'string' && d.length >= 7);
     const months = Array.from(new Set(allDates.map(d => d.substring(0, 7)))).sort().reverse();
     
-    // Remplacement total du dernier innerHTML par la méthode pure DOM
     sel.replaceChildren();
     const defaultOpt = document.createElement('option');
     defaultOpt.value = '';
