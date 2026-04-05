@@ -14,17 +14,17 @@
             --bg-card: #000000;
             --bg-input: #080808;
             --text-main: #ffffff;
-            --text-muted: #666666;
+            --text-muted: #999999; /* Correction A11y : Ratio de contraste valide WCAG */
             --border: #333333;
-            --accent-red: #ea1d2c; /* Le rouge Nothing */
+            --accent-red: #ea1d2c;
             --primary: #ea1d2c;
             --primary-hover: #ff2a3a;
-            --success: #ea1d2c; /* Ventes en rouge pour le thème */
-            --danger: #ffffff;  /* Achats en blanc */
+            --success: #ea1d2c;
+            --danger: #ffffff;
             --warning: #ffffff;
             --badge-bg: #111111;
             --badge-text: #ffffff;
-            --radius: 0px; /* Angles droits stricts */
+            --radius: 0px;
             
             --font-pixel: 'DotGothic16', monospace;
             --font-text: 'Inter', sans-serif;
@@ -41,7 +41,6 @@
             min-height: 100vh;
         }
 
-        /* Typographie Nothing */
         h1, h2, h3, .stat-value, .btn-primary, .btn-warning, .btn-primary-alt, .price-tag, .auth-title {
             font-family: var(--font-pixel);
             text-transform: uppercase;
