@@ -17,7 +17,7 @@ const db = getFirestore(app);
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 const VALID_PLATFORMS = ['Vinted', 'Etsy', 'Direct', 'LeBonCoin', 'Autre'];
-const VALID_PAYMENTS  = ['Carte Bancaire', 'PayPal', 'Espèces'];
+const VALID_PAYMENTS  = ['Carte Bancaire', 'PayPal'];
 
 let currentUser = null;
 let salesData = [];
