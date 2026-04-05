@@ -28,18 +28,15 @@ let salesLoaded = false;
 let purchasesLoaded = false;
 let _toastTimer = null;
 
+// --- UTILITAIRES ---
+
 const escapeHTML = (str) => {
     if (str === null || str === undefined) return '';
     return String(str).replace(/[&<>'"]/g, tag => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        "'": '&#39;',
-        '"': '&quot;'
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
     }[tag]));
 };
 
-// FIX LOGIQUE MÉTIER : Gestion parfaite des flottants (JS convertit en centimes avant calcul)
 const safeMoneySum = (data, key) => {
     return data.reduce((acc, item) => {
         const amount = Math.round((Number(item[key]) || 0) * 100);
@@ -51,7 +48,7 @@ function formatDate(dateString) {
     if (!DATE_REGEX.test(dateString)) return escapeHTML(String(dateString));
     const [y, m, d] = dateString.split('-');
     const dateObj = new Date(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(d, 10));
-    if (isNaN(dateObj.getTime())) return escapeHTML(dateString);
+    if (isNaN(dateObj.getTime())) return escapeHTML(String(dateString));
     return dateObj.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' });
 }
 
@@ -76,12 +73,8 @@ function announceTableUpdate(message) {
     document.getElementById('tableAnnouncer').textContent = message;
 }
 
-// FIX SÉCURITÉ : Prévention DDE/Formula Injection et bugs de sauts de ligne
 function exportCSV(data, type, filename) {
-    if (!data.length) {
-        showToast('Aucune donnée à exporter', false);
-        return;
-    }
+    if (!data.length) { showToast('Aucune donnée à exporter', false); return; }
 
     const sanitizeCSV = (str) => {
         if (str === null || str === undefined) return '';
@@ -92,15 +85,9 @@ function exportCSV(data, type, filename) {
 
     let csv;
     if (type === 'sales') {
-        csv = 'Date,Produit,Plateforme,Montant Brut (EUR)\n' +
-            data.map(s =>
-                `${s.date},"${sanitizeCSV(s.product)}","${sanitizeCSV(s.platform)}",${(Number(s.price) || 0).toFixed(2)}`
-            ).join('\n');
+        csv = 'Date,Produit,Plateforme,Montant Brut (EUR)\n' + data.map(s => `${s.date},"${sanitizeCSV(s.product)}","${sanitizeCSV(s.platform)}",${(Number(s.price) || 0).toFixed(2)}`).join('\n');
     } else {
-        csv = 'Date,Description,Fournisseur,Moyen de paiement,Montant TTC (EUR)\n' +
-            data.map(p =>
-                `${p.date},"${sanitizeCSV(p.description)}","${sanitizeCSV(p.supplier)}","${sanitizeCSV(p.paymentMethod)}",${(Number(p.amount) || 0).toFixed(2)}`
-            ).join('\n');
+        csv = 'Date,Description,Fournisseur,Moyen de paiement,Montant TTC (EUR)\n' + data.map(p => `${p.date},"${sanitizeCSV(p.description)}","${sanitizeCSV(p.supplier)}","${sanitizeCSV(p.paymentMethod)}",${(Number(p.amount) || 0).toFixed(2)}`).join('\n');
     }
 
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -112,9 +99,10 @@ function exportCSV(data, type, filename) {
     a.click();
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 150);
-
     showToast('Export CSV téléchargé !');
 }
+
+// --- AUTHENTIFICATION ET FIRESTORE ---
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -125,14 +113,10 @@ onAuthStateChanged(auth, (user) => {
         startListeningToData();
     } else {
         currentUser = null;
-        salesData = [];
-        purchasesData = [];
-        salesLoaded = false;
-        purchasesLoaded = false;
-
+        salesData = []; purchasesData = [];
+        salesLoaded = false; purchasesLoaded = false;
         if (unsubSales) { unsubSales(); unsubSales = null; }
         if (unsubPurchases) { unsubPurchases(); unsubPurchases = null; }
-
         document.getElementById('auth-screen').style.display = 'flex';
         document.getElementById('app-container').style.display = 'none';
         document.getElementById('skipLink').setAttribute('tabindex', '-1');
@@ -143,37 +127,24 @@ onAuthStateChanged(auth, (user) => {
 
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-
     const btn = document.getElementById('btnLogin');
     const errorText = document.getElementById('auth-error');
-
-    btn.disabled = true;
-    btn.textContent = 'Connexion...';
-    errorText.textContent = '';
-
+    btn.disabled = true; btn.textContent = 'Connexion...'; errorText.textContent = '';
     try {
-        await signInWithEmailAndPassword(
-            auth,
-            document.getElementById('email').value.trim(),
-            document.getElementById('password').value
-        );
+        await signInWithEmailAndPassword(auth, document.getElementById('email').value.trim(), document.getElementById('password').value);
         showToast('Connecté !');
     } catch (err) {
         errorText.textContent = 'Identifiants incorrects.';
-        btn.disabled = false;
-        btn.textContent = 'Se connecter';
+        btn.disabled = false; btn.textContent = 'Se connecter';
     }
 });
 
 document.getElementById('btnLogout').addEventListener('click', () => signOut(auth));
 
-// FIX ARCHITECTURE : Factory Pattern pour supprimer la duplication onSnapshot
 function startListeningToData() {
     if (!currentUser) return;
-
     [unsubSales, unsubPurchases].forEach(unsub => unsub && unsub());
-    salesLoaded = false;
-    purchasesLoaded = false;
+    salesLoaded = false; purchasesLoaded = false;
 
     const createListener = (collectionName, stateSetter, loadFlagSetter) => {
         const q = query(collection(db, `users/${currentUser.uid}/${collectionName}`), orderBy('date', 'desc'));
@@ -196,263 +167,288 @@ function startListeningToData() {
     unsubPurchases = createListener('purchases', data => purchasesData = data, flag => purchasesLoaded = flag);
 }
 
+// --- GESTION DES FORMULAIRES ---
+
 document.getElementById('salesForm').addEventListener('submit', async function (e) {
     e.preventDefault();
     if (!currentUser) return;
-
-    const date     = document.getElementById('saleDate').value;
-    const product  = document.getElementById('saleProduct').value.trim();
-    const price    = document.getElementById('salePrice').valueAsNumber;
+    const date = document.getElementById('saleDate').value;
+    const product = document.getElementById('saleProduct').value.trim();
+    const price = document.getElementById('salePrice').valueAsNumber;
     const platform = document.getElementById('salePlatform').value;
 
-    if (!DATE_REGEX.test(date))                                { showToast('Date invalide', false); return; }
-    if (!product || product.length > 150)                      { showToast('Produit invalide', false); return; }
-    if (!isFinite(price) || price <= 0 || price > 99999.99)    { showToast('Montant invalide', false); return; }
-    if (!VALID_PLATFORMS.includes(platform))                   { showToast('Plateforme invalide', false); return; }
+    if (!DATE_REGEX.test(date)) { showToast('Date invalide', false); return; }
+    if (!product || product.length > 150) { showToast('Produit invalide', false); return; }
+    if (!isFinite(price) || price <= 0 || price > 99999.99) { showToast('Montant invalide', false); return; }
+    if (!VALID_PLATFORMS.includes(platform)) { showToast('Plateforme invalide', false); return; }
 
     const btn = this.querySelector('button[type="submit"]');
-    btn.disabled = true;
-    btn.textContent = 'Enregistrement...';
-
+    btn.disabled = true; btn.textContent = 'Enregistrement...';
     try {
-        await addDoc(collection(db, `users/${currentUser.uid}/sales`), {
-            date, product, price, platform,
-            createdAt: serverTimestamp()
-        });
+        await addDoc(collection(db, `users/${currentUser.uid}/sales`), { date, product, price, platform, createdAt: serverTimestamp() });
         this.reset();
         document.getElementById('saleDate').value = getTodayISO();
         showToast('Vente enregistrée !');
     } catch (err) {
         showToast('Erreur de sauvegarde', false);
     } finally {
-        btn.disabled = false;
-        btn.textContent = 'Enregistrer la vente';
+        btn.disabled = false; btn.textContent = 'Enregistrer la vente';
     }
 });
 
 document.getElementById('purchaseForm').addEventListener('submit', async function (e) {
     e.preventDefault();
     if (!currentUser) return;
-
-    const date          = document.getElementById('purchaseDate').value;
-    const description   = document.getElementById('purchaseDesc').value.trim();
-    const amount        = document.getElementById('purchaseAmount').valueAsNumber;
-    const supplier      = document.getElementById('purchaseSupplier').value.trim();
+    const date = document.getElementById('purchaseDate').value;
+    const description = document.getElementById('purchaseDesc').value.trim();
+    const amount = document.getElementById('purchaseAmount').valueAsNumber;
+    const supplier = document.getElementById('purchaseSupplier').value.trim();
     const paymentMethod = document.getElementById('purchasePayment').value;
 
-    if (!DATE_REGEX.test(date))                                  { showToast('Date invalide', false); return; }
-    if (!description || description.length > 200)                { showToast('Description invalide', false); return; }
-    if (!isFinite(amount) || amount <= 0 || amount > 99999.99)   { showToast('Montant invalide', false); return; }
-    if (!supplier || supplier.length > 100)                      { showToast('Fournisseur invalide', false); return; }
-    if (!VALID_PAYMENTS.includes(paymentMethod))                 { showToast('Moyen de paiement invalide', false); return; }
+    if (!DATE_REGEX.test(date)) { showToast('Date invalide', false); return; }
+    if (!description || description.length > 200) { showToast('Description invalide', false); return; }
+    if (!isFinite(amount) || amount <= 0 || amount > 99999.99) { showToast('Montant invalide', false); return; }
+    if (!supplier || supplier.length > 100) { showToast('Fournisseur invalide', false); return; }
+    if (!VALID_PAYMENTS.includes(paymentMethod)) { showToast('Moyen de paiement invalide', false); return; }
 
     const btn = this.querySelector('button[type="submit"]');
-    btn.disabled = true;
-    btn.textContent = 'Enregistrement...';
-
+    btn.disabled = true; btn.textContent = 'Enregistrement...';
     try {
-        await addDoc(collection(db, `users/${currentUser.uid}/purchases`), {
-            date, description, amount, supplier, paymentMethod,
-            createdAt: serverTimestamp()
-        });
+        await addDoc(collection(db, `users/${currentUser.uid}/purchases`), { date, description, amount, supplier, paymentMethod, createdAt: serverTimestamp() });
         this.reset();
         document.getElementById('purchaseDate').value = getTodayISO();
-        showToast('Achat enregistré dans le registre !');
+        showToast('Achat enregistré !');
     } catch (err) {
         showToast('Erreur de sauvegarde', false);
     } finally {
-        btn.disabled = false;
-        btn.textContent = "Enregistrer l'achat";
+        btn.disabled = false; btn.textContent = "Enregistrer l'achat";
     }
 });
 
-// FIX ACCESSIBILITÉ : Restauration du focus après suppression
-document.getElementById('salesTableContainer').addEventListener('click', async (e) => {
-    const deleteBtn = e.target.closest('.btn-delete');
-    if (deleteBtn && currentUser) {
-        const id = deleteBtn.getAttribute('data-id');
-        if (confirm('Supprimer cette vente ?')) {
-            try {
-                await deleteDoc(doc(db, `users/${currentUser.uid}/sales`, id));
-                showToast('Vente supprimée');
-                
-                const container = document.getElementById('salesTableContainer');
-                container.setAttribute('tabindex', '-1');
-                container.focus(); 
-            } catch (err) {
-                console.error('[Firestore] Delete sale error:', err.code);
-                showToast('Erreur : suppression impossible', false);
-            }
-        }
-    }
-});
+// --- GESTION CENTRALISÉE DES SUPPRESSIONS ---
 
-// FIX ACCESSIBILITÉ : Restauration du focus après suppression
-document.getElementById('purchasesTableContainer').addEventListener('click', async (e) => {
-    const deleteBtn = e.target.closest('.btn-delete');
-    if (deleteBtn && currentUser) {
-        const id = deleteBtn.getAttribute('data-id');
-        if (confirm('Supprimer cet achat du registre ?')) {
-            try {
-                await deleteDoc(doc(db, `users/${currentUser.uid}/purchases`, id));
-                showToast('Achat supprimé');
-                
-                const container = document.getElementById('purchasesTableContainer');
-                container.setAttribute('tabindex', '-1');
-                container.focus();
-            } catch (err) {
-                console.error('[Firestore] Delete purchase error:', err.code);
-                showToast('Erreur : suppression impossible', false);
+function setupDeleteHandler(containerId, collectionName, entityName) {
+    document.getElementById(containerId).addEventListener('click', async (e) => {
+        const deleteBtn = e.target.closest('.btn-delete');
+        if (deleteBtn && currentUser) {
+            const id = deleteBtn.getAttribute('data-id');
+            if (confirm(`Supprimer ${entityName} ?`)) {
+                try {
+                    await deleteDoc(doc(db, `users/${currentUser.uid}/${collectionName}`, id));
+                    showToast(`${entityName} supprimé(e)`);
+                    const container = document.getElementById(containerId);
+                    container.setAttribute('tabindex', '-1');
+                    container.focus(); 
+                } catch (err) {
+                    console.error(`[Firestore] Delete error:`, err.code);
+                    showToast('Erreur : suppression impossible', false);
+                }
             }
         }
-    }
-});
+    });
+}
+
+setupDeleteHandler('salesTableContainer', 'sales', 'cette vente');
+setupDeleteHandler('purchasesTableContainer', 'purchases', 'cet achat');
+
+// --- EXPORTS CSV ---
 
 document.getElementById('btnExportSales').addEventListener('click', () => {
-    const sel = document.getElementById('monthFilter');
-    const filter = sel.value;
+    const filter = document.getElementById('monthFilter').value;
     const data = filter ? salesData.filter(s => s.date?.startsWith(filter)) : [...salesData];
-    const label = filter ? sel.options[sel.selectedIndex]?.text.replace(/\s/g, '-') : 'complet';
-    exportCSV(data, 'sales', `StudioJade_Ventes_${label}.csv`);
+    exportCSV(data, 'sales', `StudioJade_Ventes_${filter || 'complet'}.csv`);
 });
 
 document.getElementById('btnExportPurchases').addEventListener('click', () => {
-    const sel = document.getElementById('monthFilter');
-    const filter = sel.value;
+    const filter = document.getElementById('monthFilter').value;
     const data = filter ? purchasesData.filter(p => p.date?.startsWith(filter)) : [...purchasesData];
-    const label = filter ? sel.options[sel.selectedIndex]?.text.replace(/\s/g, '-') : 'complet';
-    exportCSV(data, 'purchases', `StudioJade_Achats_${label}.csv`);
+    exportCSV(data, 'purchases', `StudioJade_Achats_${filter || 'complet'}.csv`);
 });
 
-function refreshUI() {
+// --- LOGIQUE UI DÉCOUPÉE ET SÉCURISÉE ---
+
+function updateMonthFilterOptions() {
     const sel = document.getElementById('monthFilter');
-
-    const allDates = [
-        ...salesData.map(s => s.date),
-        ...purchasesData.map(p => p.date)
-    ].filter(d => typeof d === 'string' && d.length >= 7);
-
-    const months = new Set(allDates.map(d => d.substring(0, 7)));
     const savedVal = sel.value;
+    const allDates = [...salesData.map(s => s.date), ...purchasesData.map(p => p.date)].filter(d => typeof d === 'string' && d.length >= 7);
+    const months = Array.from(new Set(allDates.map(d => d.substring(0, 7)))).sort().reverse();
+    
+    // Remplacement total du dernier innerHTML par la méthode pure DOM
+    sel.replaceChildren();
+    const defaultOpt = document.createElement('option');
+    defaultOpt.value = '';
+    defaultOpt.textContent = "Tout l'historique";
+    sel.appendChild(defaultOpt);
 
-    sel.innerHTML = "<option value=''>Tout l'historique</option>";
-    Array.from(months).sort().reverse().forEach(m => {
+    months.forEach(m => {
         const [y, mo] = m.split('-');
         if (y && mo) {
-            const name = new Date(parseInt(y, 10), parseInt(mo, 10) - 1)
-                .toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-
+            const name = new Date(parseInt(y, 10), parseInt(mo, 10) - 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
             const opt = document.createElement('option');
             opt.value = m;
             opt.textContent = name.charAt(0).toUpperCase() + name.slice(1);
             sel.appendChild(opt);
         }
     });
+    if (savedVal && months.includes(savedVal)) sel.value = savedVal;
+}
 
-    if (savedVal && Array.from(months).includes(savedVal)) sel.value = savedVal;
+function updateDashboardStats(displaySales, displayPurchases, effectiveFilter, selOptions) {
+    const rev = safeMoneySum(displaySales, 'price');
+    const exp = safeMoneySum(displayPurchases, 'amount');
+    const profit = (Math.round(rev * 100) - Math.round(exp * 100)) / 100;
 
-    // FIX MATHS : Utilisation de safeMoneySum pour éviter les erreurs de flottants JS
-    const globalRev = safeMoneySum(salesData, 'price');
-    const globalExp = safeMoneySum(purchasesData, 'amount');
-    const globalProfit = (Math.round(globalRev * 100) - Math.round(globalExp * 100)) / 100;
+    document.getElementById('totalRevenue').textContent = rev.toFixed(2) + "€";
+    document.getElementById('totalPurchases').textContent = "- " + exp.toFixed(2) + "€";
+    document.getElementById('netProfit').textContent = profit.toFixed(2) + "€";
+    document.getElementById('totalCount').textContent = displaySales.length;
 
-    document.getElementById('totalRevenue').textContent = globalRev.toFixed(2) + "€";
-    document.getElementById('totalPurchases').textContent = "- " + globalExp.toFixed(2) + "€";
-    document.getElementById('netProfit').textContent = globalProfit.toFixed(2) + "€";
-    document.getElementById('totalCount').textContent = salesData.length;
+    const countLabelTarget = document.getElementById('totalCount').previousElementSibling;
+    if (countLabelTarget) {
+        countLabelTarget.textContent = effectiveFilter ? "Ventes (Période)" : "Ventes (Total)";
+    }
 
-    const effectiveFilter = sel.value;
-
-    const displaySales = effectiveFilter
-        ? salesData.filter(s => s.date?.startsWith(effectiveFilter))
-        : [...salesData];
-
-    const displayPurchases = effectiveFilter
-        ? purchasesData.filter(p => p.date?.startsWith(effectiveFilter))
-        : [...purchasesData];
-
-    // FIX MATHS : Idem ici pour l'URSSAF
-    const filteredRev = safeMoneySum(displaySales, 'price');
-
-    const labelURSSAF = effectiveFilter
-        ? `Montant URSSAF à déclarer pour ${sel.options[sel.selectedIndex]?.text}`
-        : "Chiffre d'Affaires total généré";
-
+    const labelURSSAF = effectiveFilter ? `Montant URSSAF à déclarer pour ${selOptions}` : "Chiffre d'Affaires total généré";
     document.getElementById('urssafLabel').textContent = labelURSSAF;
-    document.getElementById('urssafAmount').textContent = filteredRev.toFixed(2) + "€";
+    document.getElementById('urssafAmount').textContent = rev.toFixed(2) + "€";
+}
 
+function createTableDOM(headers, rowBuilderFunction, dataArray, emptyMessage) {
+    const container = document.createElement('div');
+    if (!dataArray.length) {
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'empty-state';
+        emptyDiv.textContent = emptyMessage;
+        container.appendChild(emptyDiv);
+        return container;
+    }
+
+    const table = document.createElement('table');
+    const thead = document.createElement('thead');
+    const trHead = document.createElement('tr');
+    
+    headers.forEach(h => {
+        const th = document.createElement('th');
+        th.setAttribute('scope', 'col');
+        if (h === 'Actions') {
+            const span = document.createElement('span');
+            span.className = 'sr-only';
+            span.textContent = 'Actions';
+            th.appendChild(span);
+        } else {
+            th.textContent = h;
+        }
+        trHead.appendChild(th);
+    });
+    thead.appendChild(trHead);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    dataArray.forEach(item => {
+        const tr = document.createElement('tr');
+        rowBuilderFunction(item, tr);
+        tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+    container.appendChild(table);
+    return container;
+}
+
+function buildSalesRow(s, tr) {
+    const tdDate = document.createElement('td'); tdDate.textContent = formatDate(s.date);
+    const tdProd = document.createElement('td'); tdProd.textContent = s.product;
+    
+    const tdPlat = document.createElement('td'); 
+    const spanPlat = document.createElement('span'); 
+    spanPlat.className = 'tag'; 
+    spanPlat.textContent = s.platform;
+    tdPlat.appendChild(spanPlat);
+
+    const tdPrice = document.createElement('td'); 
+    tdPrice.className = 'price-tag positive';
+    tdPrice.textContent = `+${(Number(s.price) || 0).toFixed(2)}€`;
+
+    const tdAction = document.createElement('td'); 
+    tdAction.className = 'text-right';
+    const btn = document.createElement('button'); 
+    btn.type = 'button'; 
+    btn.className = 'btn-delete';
+    btn.setAttribute('data-id', s.id);
+    btn.setAttribute('aria-label', `Supprimer la vente : ${s.product}`);
+    btn.textContent = '×';
+    tdAction.appendChild(btn);
+
+    tr.append(tdDate, tdProd, tdPlat, tdPrice, tdAction);
+}
+
+function buildPurchasesRow(p, tr) {
+    const tdDate = document.createElement('td'); tdDate.textContent = formatDate(p.date);
+    const tdDesc = document.createElement('td'); tdDesc.textContent = p.description;
+    
+    const tdSup = document.createElement('td'); 
+    const spanSup = document.createElement('span'); 
+    spanSup.className = 'tag'; 
+    spanSup.textContent = p.supplier;
+    tdSup.appendChild(spanSup);
+
+    const tdPrice = document.createElement('td'); 
+    tdPrice.className = 'price-tag negative';
+    tdPrice.textContent = `-${(Number(p.amount) || 0).toFixed(2)}€`;
+
+    const tdAction = document.createElement('td'); 
+    tdAction.className = 'text-right';
+    const btn = document.createElement('button'); 
+    btn.type = 'button'; 
+    btn.className = 'btn-delete';
+    btn.setAttribute('data-id', p.id);
+    btn.setAttribute('aria-label', `Supprimer l'achat : ${p.description}`);
+    btn.textContent = '×';
+    tdAction.appendChild(btn);
+
+    tr.append(tdDate, tdDesc, tdSup, tdPrice, tdAction);
+}
+
+function renderTables(displaySales, displayPurchases) {
     const tSales = document.getElementById('salesTableContainer');
-    if (!displaySales.length) {
-        tSales.innerHTML = `<div class="empty-state">Aucune vente à afficher.</div>`;
-    } else {
-        let html = `<table>
-            <thead>
-                <tr>
-                    <th scope="col">Date</th>
-                    <th scope="col">Produit</th>
-                    <th scope="col">Plateforme</th>
-                    <th scope="col">Prix</th>
-                    <th scope="col"><span class="sr-only">Actions</span></th>
-                </tr>
-            </thead>
-            <tbody>`;
-
-        displaySales.forEach(s => {
-            const safeProduct = escapeHTML(s.product);
-            const safePlatform = escapeHTML(s.platform);
-            const safeId = escapeHTML(s.id);
-
-            html += `<tr>
-                <td>${formatDate(s.date)}</td>
-                <td>${safeProduct}</td>
-                <td><span class="tag">${safePlatform}</span></td>
-                <td class="price-tag positive">+${(Number(s.price) || 0).toFixed(2)}€</td>
-                <td class="text-right">
-                    <button type="button" class="btn-delete" data-id="${safeId}" aria-label="Supprimer la vente : ${safeProduct}">×</button>
-                </td>
-            </tr>`;
-        });
-
-        tSales.innerHTML = html + '</tbody></table>';
-    }
-
     const tPurchases = document.getElementById('purchasesTableContainer');
-    if (!displayPurchases.length) {
-        tPurchases.innerHTML = `<div class="empty-state">Aucun achat enregistré.</div>`;
-    } else {
-        let html = `<table>
-            <thead>
-                <tr>
-                    <th scope="col">Date</th>
-                    <th scope="col">Matériel</th>
-                    <th scope="col">Fournisseur</th>
-                    <th scope="col">Prix</th>
-                    <th scope="col"><span class="sr-only">Actions</span></th>
-                </tr>
-            </thead>
-            <tbody>`;
 
-        displayPurchases.forEach(p => {
-            const safeDesc = escapeHTML(p.description);
-            const safeSupplier = escapeHTML(p.supplier);
-            const safeId = escapeHTML(p.id);
+    tSales.replaceChildren();
+    tPurchases.replaceChildren();
 
-            html += `<tr>
-                <td>${formatDate(p.date)}</td>
-                <td>${safeDesc}</td>
-                <td><span class="tag">${safeSupplier}</span></td>
-                <td class="price-tag negative">-${(Number(p.amount) || 0).toFixed(2)}€</td>
-                <td class="text-right">
-                    <button type="button" class="btn-delete" data-id="${safeId}" aria-label="Supprimer l'achat : ${safeDesc}">×</button>
-                </td>
-            </tr>`;
-        });
+    const salesDOM = createTableDOM(
+        ['Date', 'Produit', 'Plateforme', 'Prix', 'Actions'],
+        buildSalesRow,
+        displaySales,
+        'Aucune vente à afficher.'
+    );
 
-        tPurchases.innerHTML = html + '</tbody></table>';
-    }
+    const purchasesDOM = createTableDOM(
+        ['Date', 'Matériel', 'Fournisseur', 'Prix', 'Actions'],
+        buildPurchasesRow,
+        displayPurchases,
+        'Aucun achat enregistré.'
+    );
 
+    tSales.appendChild(salesDOM);
+    tPurchases.appendChild(purchasesDOM);
     announceTableUpdate(`${displaySales.length} ventes et ${displayPurchases.length} achats affichés.`);
 }
+
+function refreshUI() {
+    updateMonthFilterOptions();
+    
+    const sel = document.getElementById('monthFilter');
+    const effectiveFilter = sel.value;
+    
+    const displaySales = effectiveFilter ? salesData.filter(s => s.date?.startsWith(effectiveFilter)) : [...salesData];
+    const displayPurchases = effectiveFilter ? purchasesData.filter(p => p.date?.startsWith(effectiveFilter)) : [...purchasesData];
+
+    updateDashboardStats(displaySales, displayPurchases, effectiveFilter, sel.options[sel.selectedIndex]?.text);
+    renderTables(displaySales, displayPurchases);
+}
+
+// --- INITIALISATION ---
 
 document.getElementById('saleDate').value = getTodayISO();
 document.getElementById('purchaseDate').value = getTodayISO();
