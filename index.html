@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="StudioJade - Application de gestion des ventes et achats pour micro-entreprise.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💎</text></svg>">
     <title>StudioJade - Ventes & Achats</title>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Inter:wght@400;500&display=swap" rel="stylesheet">
@@ -14,14 +17,19 @@
             --bg-card: #000000;
             --bg-input: #080808;
             --text-main: #ffffff;
-            --text-muted: #999999; /* Correction A11y : Ratio de contraste valide WCAG */
+            --text-muted: #999999;
             --border: #333333;
+            
+            /* Couleurs de marque (Identité visuelle) */
             --accent-red: #ea1d2c;
             --primary: #ea1d2c;
             --primary-hover: #ff2a3a;
-            --success: #ea1d2c;
-            --danger: #ffffff;
-            --warning: #ffffff;
+            
+            /* FIX SÉMANTIQUE : Couleurs de statut corrigées (Audit) */
+            --success: #ffffff; /* Le succès affiche une bordure blanche sobre */
+            --danger: #ea1d2c;  /* L'erreur affiche une bordure rouge */
+            --warning: #cccccc; 
+            
             --badge-bg: #111111;
             --badge-text: #ffffff;
             --radius: 0px;
@@ -65,9 +73,12 @@
 
         .mt-1 { margin-top: 1rem; }
         .mt-2 { margin-top: 2rem; }
-        .text-danger { color: var(--accent-red); font-size: 0.9rem; font-family: var(--font-pixel); }
-        .text-success { color: var(--accent-red); }
-        .text-warning { color: var(--warning); }
+        
+        /* FIX SÉMANTIQUE : Classes utilitaires renommées et corrigées (Audit) */
+        .text-danger { color: var(--danger); font-size: 0.9rem; font-family: var(--font-pixel); }
+        .text-accent { color: var(--accent-red); } /* Remplace l'ancien text-success pour le design */
+        .text-warning { color: var(--text-main); }
+        
         .max-w-300 { max-width: 300px; }
         .text-right { text-align: right; }
 
@@ -215,9 +226,9 @@
         .empty-state { padding: 3rem; text-align: center; color: var(--text-muted); font-family: var(--font-pixel); text-transform: uppercase; letter-spacing: 1px; }
 
         .toast {
-            visibility: hidden; min-width: 250px; background-color: #000; color: var(--accent-red);
+            visibility: hidden; min-width: 250px; background-color: #000; color: var(--text-main);
             text-align: center; border-radius: 0; padding: 16px; position: fixed; z-index: 100;
-            left: 50%; bottom: 30px; transform: translateX(-50%); border: 2px dotted var(--accent-red);
+            left: 50%; bottom: 30px; transform: translateX(-50%); border: 2px dotted var(--border);
             font-family: var(--font-pixel); text-transform: uppercase; font-size: 1.2rem; opacity: 0;
             transition: opacity 0.3s, bottom 0.3s;
         }
@@ -243,10 +254,10 @@
 
     <a href="#app-container" class="skip-link" id="skipLink">Aller au contenu principal</a>
 
-    <div id="auth-screen" role="main">
+    <div id="auth-screen" role="dialog" aria-modal="true" aria-labelledby="auth-title">
         <div class="auth-card">
             <form id="loginForm" novalidate>
-                <h2 class="auth-title">STUDIOJADE</h2>
+                <h2 id="auth-title" class="auth-title">STUDIOJADE</h2>
                 <div class="form-group">
                     <label for="email">Email</label>
                     <input type="email" id="email" autocomplete="email" placeholder="votre@email.com" required>
@@ -293,7 +304,7 @@
                 <div class="section-header">
                     <h2 class="card-title ventes">[+] Nouvelle Vente</h2>
                 </div>
-                <form id="salesForm">
+                <form id="salesForm" novalidate>
                     <div class="form-grid">
                         <div class="form-group full-width">
                             <label for="saleProduct">Produit vendu</label>
@@ -329,7 +340,7 @@
                 <div class="section-header">
                     <h2 class="card-title achats">[-] Nouvel Achat</h2>
                 </div>
-                <form id="purchaseForm">
+                <form id="purchaseForm" novalidate>
                     <div class="form-grid">
                         <div class="form-group full-width">
                             <label for="purchaseDesc">Description du matériel</label>
@@ -376,14 +387,14 @@
                     </select>
                 </div>
                 <div class="monthly-highlight" id="monthlySummaryText">
-                    <span id="urssafLabel">CA Total</span> : <strong class="text-success" id="urssafAmount">0.00€</strong>
+                    <span id="urssafLabel">CA Total</span> : <strong class="text-accent" id="urssafAmount">0.00€</strong>
                 </div>
             </div>
 
             <div class="tables-grid">
                 <div>
                     <div class="table-header">
-                        <h3 class="table-title text-success">Livre des Recettes</h3>
+                        <h3 class="table-title text-accent">Livre des Recettes</h3>
                         <button type="button" class="btn-export" id="btnExportSales" aria-label="Exporter les ventes en CSV">
                             Export CSV
                         </button>
