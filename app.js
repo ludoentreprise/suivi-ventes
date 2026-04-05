@@ -80,7 +80,7 @@ function exportCSV(data, type, filename) {
         if (str === null || str === undefined) return '';
         let clean = String(str).replace(/"/g, '""');
         if (/^[=+\-@]/.test(clean)) clean = "'" + clean;
-        return clean.replace(/[\n\r]/g, ' '); 
+        return clean.replace(/[\n\r]/g, ' ');
     };
 
     let csv;
@@ -108,7 +108,6 @@ onAuthStateChanged(auth, (user) => {
     const authScreen = document.getElementById('auth-screen');
     if (user) {
         currentUser = user;
-        // DESIGN : Fade out de l'écran d'auth, puis masquage
         authScreen.classList.add('hidden');
         setTimeout(() => { authScreen.style.display = 'none'; }, 300);
         document.getElementById('app-container').style.display = 'block';
@@ -120,7 +119,6 @@ onAuthStateChanged(auth, (user) => {
         salesLoaded = false; purchasesLoaded = false;
         if (unsubSales) { unsubSales(); unsubSales = null; }
         if (unsubPurchases) { unsubPurchases(); unsubPurchases = null; }
-        // DESIGN : Réaffichage puis fade in de l'écran d'auth
         authScreen.style.display = 'flex';
         requestAnimationFrame(() => authScreen.classList.remove('hidden'));
         document.getElementById('app-container').style.display = 'none';
@@ -153,7 +151,7 @@ function startListeningToData() {
 
     const createListener = (collectionName, stateSetter, loadFlagSetter) => {
         const q = query(collection(db, `users/${currentUser.uid}/${collectionName}`), orderBy('date', 'desc'));
-        return onSnapshot(q, 
+        return onSnapshot(q,
             (snap) => {
                 stateSetter(snap.docs.map(d => ({ id: d.id, ...d.data() })));
                 loadFlagSetter(true);
@@ -243,7 +241,7 @@ function setupDeleteHandler(containerId, collectionName, entityName) {
                     showToast(`${entityName} supprimé(e)`);
                     const container = document.getElementById(containerId);
                     container.setAttribute('tabindex', '-1');
-                    container.focus(); 
+                    container.focus();
                 } catch (err) {
                     console.error(`[Firestore] Delete error:`, err.code);
                     showToast('Erreur : suppression impossible', false);
@@ -277,7 +275,7 @@ function updateMonthFilterOptions() {
     const savedVal = sel.value;
     const allDates = [...salesData.map(s => s.date), ...purchasesData.map(p => p.date)].filter(d => typeof d === 'string' && d.length >= 7);
     const months = Array.from(new Set(allDates.map(d => d.substring(0, 7)))).sort().reverse();
-    
+
     sel.replaceChildren();
     const defaultOpt = document.createElement('option');
     defaultOpt.value = '';
@@ -330,7 +328,7 @@ function createTableDOM(headers, rowBuilderFunction, dataArray, emptyMessage) {
     const table = document.createElement('table');
     const thead = document.createElement('thead');
     const trHead = document.createElement('tr');
-    
+
     headers.forEach(h => {
         const th = document.createElement('th');
         th.setAttribute('scope', 'col');
@@ -362,21 +360,21 @@ function createTableDOM(headers, rowBuilderFunction, dataArray, emptyMessage) {
 function buildSalesRow(s, tr) {
     const tdDate = document.createElement('td'); tdDate.textContent = formatDate(s.date);
     const tdProd = document.createElement('td'); tdProd.textContent = s.product;
-    
-    const tdPlat = document.createElement('td'); 
-    const spanPlat = document.createElement('span'); 
-    spanPlat.className = 'tag'; 
+
+    const tdPlat = document.createElement('td');
+    const spanPlat = document.createElement('span');
+    spanPlat.className = 'tag';
     spanPlat.textContent = s.platform;
     tdPlat.appendChild(spanPlat);
 
-    const tdPrice = document.createElement('td'); 
+    const tdPrice = document.createElement('td');
     tdPrice.className = 'price-tag positive';
     tdPrice.textContent = `+${(Number(s.price) || 0).toFixed(2)}€`;
 
-    const tdAction = document.createElement('td'); 
+    const tdAction = document.createElement('td');
     tdAction.className = 'text-right';
-    const btn = document.createElement('button'); 
-    btn.type = 'button'; 
+    const btn = document.createElement('button');
+    btn.type = 'button';
     btn.className = 'btn-delete';
     btn.setAttribute('data-id', s.id);
     btn.setAttribute('aria-label', `Supprimer la vente : ${s.product}`);
@@ -389,21 +387,21 @@ function buildSalesRow(s, tr) {
 function buildPurchasesRow(p, tr) {
     const tdDate = document.createElement('td'); tdDate.textContent = formatDate(p.date);
     const tdDesc = document.createElement('td'); tdDesc.textContent = p.description;
-    
-    const tdSup = document.createElement('td'); 
-    const spanSup = document.createElement('span'); 
-    spanSup.className = 'tag'; 
+
+    const tdSup = document.createElement('td');
+    const spanSup = document.createElement('span');
+    spanSup.className = 'tag';
     spanSup.textContent = p.supplier;
     tdSup.appendChild(spanSup);
 
-    const tdPrice = document.createElement('td'); 
+    const tdPrice = document.createElement('td');
     tdPrice.className = 'price-tag negative';
     tdPrice.textContent = `-${(Number(p.amount) || 0).toFixed(2)}€`;
 
-    const tdAction = document.createElement('td'); 
+    const tdAction = document.createElement('td');
     tdAction.className = 'text-right';
-    const btn = document.createElement('button'); 
-    btn.type = 'button'; 
+    const btn = document.createElement('button');
+    btn.type = 'button';
     btn.className = 'btn-delete';
     btn.setAttribute('data-id', p.id);
     btn.setAttribute('aria-label', `Supprimer l'achat : ${p.description}`);
@@ -441,10 +439,10 @@ function renderTables(displaySales, displayPurchases) {
 
 function refreshUI() {
     updateMonthFilterOptions();
-    
+
     const sel = document.getElementById('monthFilter');
     const effectiveFilter = sel.value;
-    
+
     const displaySales = effectiveFilter ? salesData.filter(s => s.date?.startsWith(effectiveFilter)) : [...salesData];
     const displayPurchases = effectiveFilter ? purchasesData.filter(p => p.date?.startsWith(effectiveFilter)) : [...purchasesData];
 
